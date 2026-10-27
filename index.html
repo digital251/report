@@ -163,7 +163,10 @@ textarea { min-height: 70px; resize: vertical; }
 .x { border: 0; background: var(--surface-2); width: 36px; height: 36px; border-radius: 50%; font-size: 18px; }
 @media (min-width: 600px) { .scrim { align-items: center; } .sheet { border-radius: 18px; } }
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 12px; z-index: 30; font-weight: 600; max-width: calc(100% - 32px); text-align: center; }
-.loading { text-align: center; padding: 40px; color: var(--muted); }
+.loading { display: grid; place-items: center; padding: 56px 0; }
+.spinner { width: 42px; height: 42px; border-radius: 50%; border: 4px solid var(--accent-soft); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
 
 /* 관리자 */
 .subtabs { display: flex; gap: 6px; overflow-x: auto; }
@@ -207,7 +210,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 <div class="demo" id="demoBar" hidden>
   <div class="wrap"><span><b>체험 모드</b> · 예시 데이터로 동작하며 실제 시트·메일에는 반영되지 않습니다.</span><button type="button" id="demoReset">예시 초기화</button></div>
 </div>
-<main class="wrap" id="app"><div class="loading">불러오는 중…</div></main>
+<main class="wrap" id="app"><div class="loading" role="status" aria-label="불러오는 중"><span class="spinner"></span></div></main>
 <footer class="wrap">
   <span>고장은 발견한 즉시 신고해 주세요.</span>
   <span>화면 버전 10-27b</span>
@@ -255,16 +258,7 @@ const Mock = (() => {
   const KEY = 'tm-demo-v4';
   const CLASSES = ['1-1','1-2','1-3','1-4','1-5','1-6','1-7','1-8','2-1','2-2','2-3','2-4','2-5','2-6','2-7','2-8','2-9','3-1','3-2','3-3','3-4','3-5','3-6','3-7','3-8','명지정','과학실'];
   const EQUIP = ['유선랜', 'HDMI', 'TV']; // 기자재 문서의 탭 이름 예시
-  const SYMPTOMS = {
-    태블릿: ['충전이 안 돼요', '화면이 깨졌어요', '전원이 안 켜져요', '터치가 안 돼요', '소리가 안 나요', '태블릿이 없어요', '기타'],
-    충전함: ['문이 안 닫히거나 안 잠겨요', '살균램프가 안 켜져요', '타이머가 없거나 고장났어요', '충전함 전원이 안 들어와요', '기타'],
-    유선랜: ['인터넷이 안 돼요', '랜선이 끊어졌어요', '단자가 망가졌어요', '기타'],
-    HDMI: ['화면이 안 나와요', '케이블이 망가졌어요', '단자가 헐거워요', '기타'],
-    TV: ['전원이 안 켜져요', '화면이 안 나와요', '소리가 안 나요', '리모컨이 없어요', '기타'],
-    노트북: ['전원이 안 켜져요', '화면이 안 나와요', '인터넷이 안 돼요', '부서졌어요', '기타'],
-  };
   const SLOT_OPTS = ['단자망가짐', '충전선망가짐']; // 현황 탭 충전 칸 드롭다운 항목
-  const TEACHERS = ['김지원', '박서연', '이도윤', '최하늘', '정민준']; // 교사 명단 A열 예시
   const STAFF = ['교무실'], STAFF_DEV = ['태블릿', '노트북'];
   const cabItem = s => /도어|문/.test(s) ? '도어' : /램프|살균/.test(s) ? '살균램프' : /타이머/.test(s) ? '타이머' : /전원/.test(s) ? '전원' : '비고';
   function seed() {
@@ -303,8 +297,12 @@ const Mock = (() => {
   function handle(a, p) {
     if (a.startsWith('admin_') && p.admin !== 'demo') return { ok: false, error: 'ADMIN', message: '관리자 비밀번호가 맞지 않습니다. (체험 모드: demo)' };
     switch (a) {
-      case 'init': return { ok: true, school: '영신중학교 (체험)', symptoms: SYMPTOMS, slotOptions: SLOT_OPTS, equipment: EQUIP, staffDevices: STAFF_DEV, teachers: TEACHERS,
-        classes: CLASSES.map(c => ({ cls: c })).concat(STAFF.map(c => ({ cls: c, staff: true }))) };
+      case 'init': {
+        const r = { ok: true, school: '영신중학교 (체험)', slotOptions: SLOT_OPTS, equipment: EQUIP, staffDevices: STAFF_DEV,
+          classes: CLASSES.map(c => ({ cls: c })).concat(STAFF.map(c => ({ cls: c, staff: true }))) };
+        if (p.cls) r.data = handle('class', p);
+        return r;
+      }
       case 'class': {
         const c = p.cls;
         if (STAFF.includes(c)) return { ok: true, cls: c, staff: true, reports: db.reports.filter(r => r.cls === c && isOpen(r.status)).map(({ id, at, target, num, issue, status, reporter }) => ({ id, at, target, num, issue, status, reporter })) }; if (!db.grid[c]) return { ok: false, message: '현황 탭에서 찾을 수 없는 반입니다: ' + c };
@@ -405,22 +403,51 @@ function toast(msg) {
   const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
 }
-function closeSheet() { $layer.innerHTML = ''; }
+/* ───────── 뒤로 가기 ─────────
+ * 화면을 옮길 때마다 브라우저 기록을 하나씩 쌓아, 휴대폰 뒤로 가기 키가 앞 화면으로 돌아가게 합니다.
+ * go(화면) = 새 화면으로 이동(기록 추가), go(화면, true) = 지금 기록을 바꿔치기, back(대신 갈 화면) = 앞 화면으로. */
+const nav = { stack: [], i: -1, seq: 0, sheet: false };
+function go(fn, replace) {
+  nav.seq++;
+  if (nav.sheet) { nav.sheet = false; $layer.innerHTML = ''; history.replaceState({ nav: nav.i }, ''); }
+  if (replace || nav.i < 0) { nav.i = Math.max(nav.i, 0); nav.stack[nav.i] = fn; history.replaceState({ nav: nav.i }, ''); }
+  else { nav.stack.length = nav.i + 1; nav.stack.push(fn); nav.i++; history.pushState({ nav: nav.i }, ''); }
+  return fn();
+}
+/** QR로 바로 반 메뉴에 들어올 때: 첫 기록을 학년·반 고르기 화면으로 깔아 두어, 뒤로 가기가 브라우저를 닫지 않게 함 */
+function seedNav(fn) { nav.stack = [fn]; nav.i = 0; history.replaceState({ nav: 0 }, ''); }
+function back(fallback) { if (nav.i > 0) history.back(); else go(fallback, true); }
+window.addEventListener('popstate', e => {
+  const s = e.state || {};
+  if (nav.sheet || $layer.innerHTML) { nav.sheet = false; $layer.innerHTML = ''; if (s.nav === nav.i) return; }
+  if (typeof s.nav !== 'number' || s.nav === nav.i || !nav.stack[s.nav]) return;
+  nav.i = s.nav; nav.seq++;
+  nav.stack[nav.i]();
+});
+
+/** 열린 창 닫기. 창을 열 때 쌓은 기록도 함께 되돌립니다. */
+function closeSheet() {
+  if (!$layer.innerHTML) return;
+  $layer.innerHTML = '';
+  if (nav.sheet) { nav.sheet = false; history.back(); }
+}
 function sheet(title, bodyHTML, onMount) {
   $layer.innerHTML = `<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <div class="sheet-head"><h2>${esc(title)}</h2><button class="x" type="button" id="sheetX" aria-label="닫기">×</button></div>${bodyHTML}</div></div>`;
+  if (!nav.sheet && nav.i >= 0) { nav.sheet = true; history.pushState({ nav: nav.i, sheet: true }, ''); }
   document.getElementById('sheetX').onclick = closeSheet;
   document.getElementById('scrim').onclick = e => { if (e.target.id === 'scrim') closeSheet(); };
   onMount && onMount($layer.querySelector('.sheet'));
 }
 function setChip(text, fn) { $chip.hidden = !text; $chip.textContent = text || ''; $chip.onclick = fn || null; }
 function show(html) { closeSheet(); $app.innerHTML = html; window.scrollTo(0, 0); }
+const LOADING = '<div class="loading" role="status" aria-label="불러오는 중"><span class="spinner"></span></div>';
 
 /* ───────── 시작 ───────── */
 async function boot() {
   document.getElementById('demoBar').hidden = !DEMO;
-  if (state.adminMode) return renderAdmin();
-  if (!state.code) return renderCodeGate();
+  if (state.adminMode) return go(renderAdmin, true);
+  if (!state.code) return go(renderCodeGate, true);
   // 지난번에 받아 둔 학년·반 목록이 있으면 바로 화면을 띄우고, 새 목록은 뒤에서 받아 옵니다.
   const key = 'tm-init:' + (DEMO ? 'demo' : CONFIG.API_URL);
   let cached = null;
@@ -428,16 +455,21 @@ async function boot() {
   const start = r => {
     state.init = r;
     document.getElementById('schoolName').textContent = r.school;
-    if (state.cls && r.classes.some(c => c.cls === state.cls)) return openMenu(state.cls);
-    renderHome();
+    if (state.cls && r.classes.some(c => c.cls === state.cls)) {
+      seedNav(renderHome);
+      return go(() => openMenu(state.cls));
+    }
+    go(renderHome, true);
   };
   if (cached && cached.ok) start(cached);
-  const r = await api('init');
+  // 받아 둔 목록이 없을 때 QR로 들어오면, 반 정보도 같은 요청으로 함께 받아 서버에 두 번 묻지 않습니다.
+  const r = await api('init', !cached && state.cls ? { cls: state.cls } : {});
   if (!r.ok) {
-    if (r.error === 'CODE') { store.del('tm-code'); store.del(key); state.code = ''; return renderCodeGate(r.message); }
+    if (r.error === 'CODE') { store.del('tm-code'); store.del(key); state.code = ''; return go(() => renderCodeGate(r.message), true); }
     if (!cached) return renderError(r.message);
     return;
   }
+  if (r.data) { if (r.data.ok) { state.cls = r.data.cls; state.data = r.data; } delete r.data; }
   store.set(key, JSON.stringify(r));
   if (!cached) return start(r);
   const changed = JSON.stringify(cached) !== JSON.stringify(r);
@@ -458,7 +490,7 @@ function renderCodeGate(msg) {
     <button class="primary" type="button" id="codeGo">들어가기</button></div>`);
   document.getElementById('codeGo').onclick = () => {
     const v = document.getElementById('codeIn').value.trim(); if (!v) return;
-    state.code = v; store.set('tm-code', v); boot();
+    state.code = v; store.set('tm-code', v); show(LOADING); boot();
   };
 }
 
@@ -486,7 +518,7 @@ function renderHome() {
       }).join('')}</div>` : '<div class="hint">학년을 먼저 골라 주세요</div>'}
     </section>`);
   $app.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { state.grade = b.dataset.g; store.set('tm-grade', state.grade); renderHome(); });
-  $app.querySelectorAll('[data-cls]').forEach(b => b.onclick = () => openMenu(b.dataset.cls));
+  $app.querySelectorAll('[data-cls]').forEach(b => b.onclick = () => go(() => openMenu(b.dataset.cls)));
 }
 
 /* ───────── 화면 2: 메뉴 ───────── */
@@ -499,13 +531,24 @@ async function loadClass(cls) {
 const isStaff = c => ((state.init && state.init.classes) || []).some(x => x.cls === c && x.staff);
 const whereShort = r => isStaff(r.cls || state.cls) ? `${r.reporter || ''} 선생님 ${r.target}` : r.target === '태블릿' ? `${r.num}번 태블릿` : r.target === '충전함 칸' ? `충전 칸 ${r.num}번` : r.target;
 const whereLong = r => `${clsLabel(r.cls)} ${whereShort(r)}`;
-const openOf = (target) => state.data.reports.filter(r => Array.isArray(target) ? target.includes(r.target) : r.target === target);
+/** 반 화면 안의 메뉴: 뒤로/앞으로 가기로 다시 열 때 그 반 정보가 없으면 먼저 불러옴 */
+const inClass = (cls, fn) => async () => {
+  if (!state.data || state.data.cls !== cls) {
+    show(LOADING);
+    const seq = nav.seq;
+    if (!(await loadClass(cls)) || seq !== nav.seq) return;
+  }
+  fn();
+};
+const openOf = (target) =>state.data.reports.filter(r => Array.isArray(target) ? target.includes(r.target) : r.target === target);
 
 async function openMenu(cls) {
-  setChip('반 바꾸기', renderHome);
+  setChip('반 바꾸기', () => back(renderHome));
   if (!state.data || state.data.cls !== cls) {
-    show('<div class="loading">불러오는 중…</div>');
+    show(LOADING);
+    const seq = nav.seq;
     if (!(await loadClass(cls))) return;
+    if (seq !== nav.seq) return;   // 불러오는 동안 다른 화면으로 옮겨 갔으면 그리지 않음
   }
   const d = state.data;
   if (d.staff) return staffMenu(cls);
@@ -531,8 +574,8 @@ async function openMenu(cls) {
     </nav>`);
   $app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
     const g = b.dataset.go;
-    if (g.startsWith('eq:')) return openEquip(g.slice(3));
-    ({ usage: openUsage, tablet: openTablet, cabinet: openCabinet })[g]();
+    if (g.startsWith('eq:')) return go(inClass(cls, () => openEquip(g.slice(3))));
+    go(inClass(cls, { usage: openUsage, tablet: openTablet, cabinet: openCabinet }[g]));
   });
 }
 function staffMenu(cls) {
@@ -546,7 +589,7 @@ function staffMenu(cls) {
         return `<button type="button" class="tile${n ? ' has' : ''}" data-dev="${esc(dv)}"><span class="ic">${iconFor(dv)}</span><span class="tx"><b>${esc(dv)}</b><small class="${n ? 'bad' : ''}">${n ? `지금 ${n}건 접수됨` : '이름을 골라 신고해요'}</small></span></button>`; }).join('')}</div>
       </section>
     </nav>`);
-  $app.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => openStaff(b.dataset.dev));
+  $app.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => go(inClass(cls, () => openStaff(b.dataset.dev))));
 }
 /** 선생님 이름: 직접 입력 (지난번에 쓴 이름이 미리 채워짐) */
 function teacherSelect(id, selected) {
@@ -573,7 +616,7 @@ const iconFor = n => /랜|LAN|lan|인터넷|네트워크|공유기|와이파이|
   : /노트북/.test(n) ? ICON.laptop
   : /태블릿|패드/.test(n) ? ICON.tablet : ICON.tool;
 const backBtn = () => `<button type="button" class="back" id="back">‹ ${esc(clsLabel(state.cls))} 메뉴</button>`;
-function bindBack() { document.getElementById('back').onclick = () => openMenu(state.cls); }
+function bindBack() { const cls = state.cls; document.getElementById('back').onclick = () => back(() => openMenu(cls)); }
 const openList = list => `<section class="form"><h3>처리 중인 신고</h3>
   <div class="list">${list.length ? list.map(reportItem).join('') : '<div class="empty">처리 중인 신고가 없어요.</div>'}</div></section>`;
 
@@ -692,8 +735,10 @@ function bindIssue(el, list, build, after, needName) {
 
 /* ───────── 태블릿 사용대장 ───────── */
 async function openUsage() {
-  show(`${backBtn()}<div class="loading">불러오는 중…</div>`); bindBack();
+  show(`${backBtn()}${LOADING}`); bindBack();
+  const seq = nav.seq;
   const r = await api('usage_list', { cls: state.cls });
+  if (seq !== nav.seq) return;
   if (!r.ok) return renderError(r.error === 'UPW'
     ? '서버(Apps Script)가 아직 예전 버전입니다. 관리 담당 선생님께 Code.gs를 새 버전으로 다시 배포해 달라고 알려 주세요.'
     : r.message);
@@ -742,7 +787,7 @@ function renderUsage(usage) {
       teacher: t, subject: s, condition, memo: document.getElementById('uMemo').value.trim() });
     if (!r.ok) { save.disabled = false; save.textContent = '기록 저장'; return toast(r.message); }
     store.set('tm-teacher', t); store.set('tm-subject', s);
-    if (condition === '이상 있음') { toast('저장했어요. 고장 난 번호를 눌러 신고해 주세요.'); if (await loadClass(state.cls)) openTablet(); }
+    if (condition === '이상 있음') { toast('저장했어요. 고장 난 번호를 눌러 신고해 주세요.'); if (await loadClass(state.cls)) go(openTablet, true); }
     else { toast(r.message); openUsage(); }
   };
 }
@@ -750,7 +795,7 @@ function renderUsage(usage) {
 /* ───────── 관리자 ───────── */
 async function renderAdmin() {
   state.adminMode = true;
-  setChip('사용 화면으로', () => { state.adminMode = false; boot(); });
+  setChip('사용 화면으로', () => { state.adminMode = false; if (nav.i > 0) history.back(); else boot(); });
   if (!state.adminKey) return renderAdminLogin();
   const chk = await api('admin_check');
   if (!chk.ok) { state.adminKey = ''; store.del('tm-admin', true); return renderAdminLogin(chk.message); }
@@ -758,7 +803,7 @@ async function renderAdmin() {
   show(`<div class="form no-print" style="gap:10px"><h2>관리자</h2>
     <div class="subtabs" role="tablist">${[['open', '처리할 신고'], ['done', '처리 완료'], ['qr', 'QR 코드']].map(([k, l]) =>
       `<button type="button" role="tab" aria-selected="${state.adminTab === k}" data-at="${k}">${l}</button>`).join('')}</div></div>
-    <div id="adminBody"><div class="loading">불러오는 중…</div></div>`);
+    <div id="adminBody">${LOADING}</div>`);
   $app.querySelectorAll('[data-at]').forEach(b => b.onclick = () => { state.adminTab = b.dataset.at; renderAdmin(); });
   if (state.adminTab === 'qr') return renderQR();
   const r = await api('admin_data');
@@ -823,8 +868,8 @@ async function renderQR() {
   draw();
 }
 
-document.getElementById('brand').onclick = () => { if (state.init) renderHome(); else boot(); };
-document.getElementById('adminLink').onclick = () => renderAdmin();
+document.getElementById('brand').onclick = () => { if (state.init) go(renderHome); else boot(); };
+document.getElementById('adminLink').onclick = () => go(renderAdmin);
 document.getElementById('demoReset').onclick = () => { Mock.reset(); state.data = null; toast('예시 데이터를 처음 상태로 돌렸어요.'); boot(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 boot();
