@@ -85,16 +85,19 @@ select { width: 100%; border: 1px solid var(--line); background: var(--surface-2
 .menu-btn .tx small { font-size: 13px; color: var(--muted); }
 .menu-btn .tx small.bad { color: var(--bad); font-weight: 600; }
 .menu-btn .go { color: var(--muted); font-size: 22px; }
-.menu-sec { font-family: var(--f-display); font-weight: 400; font-size: 21px; color: var(--bad); text-align: center; margin-top: 10px; }
-.tiles { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
-.tile { border: 2px solid var(--fg); background: var(--surface); border-radius: 18px; padding: 16px; min-height: 150px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; }
+.report-box { background: var(--surface); border: 2px solid var(--line); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.menu-sec { font-family: var(--f-display); font-weight: 400; font-size: 22px; color: var(--bad); text-align: center; margin: 0; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.tile { border: 2px solid var(--fg); background: var(--surface); border-radius: 16px; padding: 12px 14px; min-height: 84px; display: flex; align-items: center; gap: 12px; text-align: left; }
 .tile:hover { border-color: var(--accent); }
-.tile .ic { width: 48px; height: 48px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin-bottom: auto; }
-.tile .ic svg { width: 26px; height: 26px; }
-.tile b { font-family: var(--f-display); font-weight: 400; font-size: 24px; line-height: 1.2; margin-top: 14px; word-break: keep-all; }
-.tile small { font-size: 13px; color: var(--muted); line-height: 1.35; }
+.tile .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.tile .ic svg { width: 24px; height: 24px; }
+.tile .tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile b { font-family: var(--f-display); font-weight: 400; font-size: 21px; line-height: 1.2; word-break: keep-all; }
+.tile small { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
 .tile small.bad { color: var(--bad); font-weight: 600; }
 .tile.has { border-color: var(--bad); }
+@media (max-width: 360px) { .tiles { grid-template-columns: 1fr; } }
 
 /* 학생 태블릿 번호 */
 .board { background: var(--surface); border: 2px solid var(--fg); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
@@ -194,7 +197,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 
 <header class="top">
   <div class="wrap">
-    <button class="brand" type="button" id="brand" aria-label="처음 화면으로"><small id="schoolName">우리학교</small><b>태블릿 충전함</b></button>
+    <button class="brand" type="button" id="brand" aria-label="처음 화면으로"><small id="schoolName">우리학교</small><b>태블릿 사용대장 및 고장 신고</b></button>
     <button class="top-chip" id="topChip" type="button" hidden></button>
   </div>
 </header>
@@ -212,7 +215,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 /* ───────── 설정 ─────────
  * API_URL: Apps Script 배포 후 받은 웹앱 주소(…/exec). 비워 두면 체험 모드로 동작합니다. */
 const CONFIG = {
-    API_URL: 'https://script.google.com/macros/s/AKfycby3XHo1qLT_zTGXgQfmH6DvDNs069n27QI3gXlBTl9bforCsg64FfmLfvDpmwkA7tOh/exec',
+  API_URL: https://script.google.com/macros/s/AKfycby3XHo1qLT_zTGXgQfmH6DvDNs069n27QI3gXlBTl9bforCsg64FfmLfvDpmwkA7tOh/exec '',
 };
 
 const PARTS = ['도어', '살균램프', '타이머', '전원'];
@@ -222,6 +225,9 @@ const ICON = {
   book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/><path d="M9 8h6M9 12h6"/></svg>',
   tablet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg>',
   box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M15 8v8"/><circle cx="18.5" cy="12" r=".6" fill="currentColor"/></svg>',
+  lan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M5 16v-4h14v4"/></svg>',
+  plug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14v5a7 7 0 0 1-14 0z"/><path d="M9 7V3M15 7V3M12 19v3"/></svg>',
+  laptop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg>',
   tool: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
   lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
 };
@@ -242,13 +248,15 @@ const isOpen = s => s === '접수' || s === '수리중' || s === '';
 
 /* ───────── 체험 모드용 가짜 서버 (실제 Apps Script와 같은 응답) ───────── */
 const Mock = (() => {
-  const KEY = 'tm-demo-v3';
+  const KEY = 'tm-demo-v4';
   const CLASSES = ['1-1','1-2','1-3','1-4','1-5','1-6','1-7','1-8','2-1','2-2','2-3','2-4','2-5','2-6','2-7','2-8','2-9','3-1','3-2','3-3','3-4','3-5','3-6','3-7','3-8','명지정','과학실'];
-  const EQUIP = ['전자칠판', '노트북']; // 기자재 문서의 탭 이름 예시
+  const EQUIP = ['유선랜', 'HDMI', 'TV']; // 기자재 문서의 탭 이름 예시
   const SYMPTOMS = {
     태블릿: ['충전이 안 돼요', '화면이 깨졌어요', '전원이 안 켜져요', '터치가 안 돼요', '소리가 안 나요', '태블릿이 없어요', '기타'],
     충전함: ['문이 안 닫히거나 안 잠겨요', '살균램프가 안 켜져요', '타이머가 없거나 고장났어요', '충전함 전원이 안 들어와요', '기타'],
-    전자칠판: ['화면이 안 나와요', '터치가 안 돼요', '소리가 안 나요', '전원이 안 켜져요', '기타'],
+    유선랜: ['인터넷이 안 돼요', '랜선이 끊어졌어요', '단자가 망가졌어요', '기타'],
+    HDMI: ['화면이 안 나와요', '케이블이 망가졌어요', '단자가 헐거워요', '기타'],
+    TV: ['전원이 안 켜져요', '화면이 안 나와요', '소리가 안 나요', '리모컨이 없어요', '기타'],
     노트북: ['전원이 안 켜져요', '화면이 안 나와요', '인터넷이 안 돼요', '부서졌어요', '기타'],
   };
   const SLOT_OPTS = ['단자망가짐', '충전선망가짐']; // 현황 탭 충전 칸 드롭다운 항목
@@ -269,7 +277,7 @@ const Mock = (() => {
     add('R2', '2026-10-22 14:05', '2-3', '태블릿', 14, '화면이 깨졌어요', '', '접수');
     add('R3', '2026-10-22 14:06', '2-3', '충전함 칸', 7, '단자망가짐', '', '접수');
     add('R4', '2026-10-22 11:40', '2-3', '충전함', '', '문이 안 닫히거나 안 잠겨요', '잠금 걸쇠가 헐거움', '접수');
-    add('R5', '2026-10-23 08:20', '2-3', '전자칠판', '', '터치가 안 돼요', '오른쪽 아래만 안 됨', '접수');
+    add('R5', '2026-10-23 08:20', '2-3', 'HDMI', '', '화면이 안 나와요', '노트북 연결 시 신호 없음', '접수');
     add('R6', '2026-10-23 08:50', '1-2', '태블릿', 15, '충전이 안 돼요', '', '접수');
     db.reports.push({ id: 'R7', at: '2026-10-23 10:15', cls: '교무실', target: '노트북', num: '', issue: '전원이 안 켜져요', memo: '', reporter: '박서연', status: '접수', doneAt: '', note: '', synced: 'N' });
     db.usage.push(
@@ -490,17 +498,19 @@ async function openMenu(cls) {
   const btn = (go, icon, title, sub, bad) => `<button type="button" class="menu-btn" data-go="${esc(go)}"><span class="ic">${icon}</span>
       <span class="tx"><b>${esc(title)}</b><small class="${bad ? 'bad' : ''}">${esc(sub)}</small></span><span class="go" aria-hidden="true">›</span></button>`;
   const tile = (go, icon, title, sub, bad) => `<button type="button" class="tile${bad ? ' has' : ''}" data-go="${esc(go)}"><span class="ic">${icon}</span>
-      <b>${esc(title)}</b><small class="${bad ? 'bad' : ''}">${esc(sub)}</small></button>`;
+      <span class="tx"><b>${esc(title)}</b><small class="${bad ? 'bad' : ''}">${esc(sub)}</small></span></button>`;
   show(`
     <div class="menu-title"><small>${esc(gradeOf(cls))}</small><h2>${esc(clsLabel(cls))}</h2></div>
     <nav class="menu" aria-label="메뉴">
       ${btn('usage', ICON.book, '태블릿 사용대장', '선생님 전용 · 비밀번호 필요')}
-      <h3 class="menu-sec">고장 신고</h3>
+      <section class="report-box" aria-labelledby="secRep">
+      <h3 class="menu-sec" id="secRep">고장 신고</h3>
       <div class="tiles">
         ${tile('tablet', ICON.tablet, '학생 태블릿', tabBad ? `지금 ${tabBad}대 고장 접수됨` : '내 번호를 눌러요', tabBad)}
         ${tile('cabinet', ICON.box, '충전함', cabBad ? `지금 ${cabBad}곳 이상` : '충전 칸 · 문 · 램프', cabBad)}
-        ${eq.map(name => { const n = openOf(name).length; return tile('eq:' + name, ICON.tool, name, n ? `지금 ${n}건 접수됨` : '고장 난 곳을 알려요', n); }).join('')}
+        ${eq.map(name => { const n = openOf(name).length; return tile('eq:' + name, iconFor(name), name, n ? `지금 ${n}건 접수됨` : '고장 난 곳을 알려요', n); }).join('')}
       </div>
+      </section>
     </nav>`);
   $app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
     const g = b.dataset.go;
@@ -510,13 +520,14 @@ async function openMenu(cls) {
 }
 function staffMenu(cls) {
   const devs = state.init.staffDevices || ['태블릿', '노트북'];
-  const icon = n => /노트북/.test(n) ? ICON.tool : ICON.tablet;
   show(`
     <div class="menu-title"><small>선생님 기기</small><h2>${esc(cls)}</h2></div>
     <nav class="menu" aria-label="메뉴">
-      <h3 class="menu-sec">고장 신고</h3>
+      <section class="report-box" aria-labelledby="secRep">
+      <h3 class="menu-sec" id="secRep">고장 신고</h3>
       <div class="tiles">${devs.map(dv => { const n = openOf(dv).length;
-        return `<button type="button" class="tile${n ? ' has' : ''}" data-dev="${esc(dv)}"><span class="ic">${icon(dv)}</span><b>${esc(dv)}</b><small class="${n ? 'bad' : ''}">${n ? `지금 ${n}건 접수됨` : '선생님 이름을 골라 신고해요'}</small></button>`; }).join('')}</div>
+        return `<button type="button" class="tile${n ? ' has' : ''}" data-dev="${esc(dv)}"><span class="ic">${iconFor(dv)}</span><span class="tx"><b>${esc(dv)}</b><small class="${n ? 'bad' : ''}">${n ? `지금 ${n}건 접수됨` : '이름을 골라 신고해요'}</small></span></button>`; }).join('')}</div>
+      </section>
     </nav>`);
   $app.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => openStaff(b.dataset.dev));
 }
@@ -544,6 +555,11 @@ function openStaff(device) {
   panel.querySelector('#who').onchange = e => store.set('tm-staff-name', e.target.value);
   bindIssue(panel, list, issue => ({ item: device, issue }), () => openStaff(device), true);
 }
+/** 기자재 이름으로 아이콘 고르기 */
+const iconFor = n => /랜|LAN|lan|인터넷|네트워크|공유기|와이파이|wifi/i.test(n) ? ICON.lan
+  : /HDMI|케이블|선|젠더|충전기/i.test(n) ? ICON.plug
+  : /노트북/.test(n) ? ICON.laptop
+  : /태블릿|패드/.test(n) ? ICON.tablet : ICON.tool;
 const backBtn = () => `<button type="button" class="back" id="back">‹ ${esc(clsLabel(state.cls))} 메뉴</button>`;
 function bindBack() { document.getElementById('back').onclick = () => openMenu(state.cls); }
 const openList = list => `<section class="form"><h3>처리 중인 신고</h3>
