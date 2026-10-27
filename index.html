@@ -487,7 +487,10 @@ async function boot() {
   const changed = JSON.stringify(cached) !== JSON.stringify(r);
   state.init = r;
   document.getElementById('schoolName').textContent = r.school;
-  if (changed && !state.data && $app.querySelector('.pick')) renderHome();
+  if (!changed) return;
+  // 받아 둔 목록과 달라졌으면(예: 기자재 탭 추가) 지금 보고 있는 학년·반 고르기나 반 메뉴를 새 목록으로 다시 그림
+  if (!state.data && $app.querySelector('.pick')) renderHome();
+  else if (state.data && state.data.cls === state.cls && $app.querySelector('nav.menu') && !nav.sheet) openMenu(state.cls);
 }
 function renderError(msg) {
   show(`<div class="panel form"><h3>문제가 생겼어요</h3><p class="muted">${esc(msg)}</p><button class="ghost" type="button" onclick="location.reload()">다시 시도</button></div>`);
