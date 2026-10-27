@@ -202,7 +202,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
   </div>
 </header>
 <div class="demo" id="demoBar" hidden>
-  <div class="wrap"><span><b>체험 모드</b> · 예시 데이터로 동작하며 실제 시트·메일에는 반영되지 않습니다. 사용대장 비밀번호 <b>1234</b></span><button type="button" id="demoReset">예시 초기화</button></div>
+  <div class="wrap"><span><b>체험 모드</b> · 예시 데이터로 동작하며 실제 시트·메일에는 반영되지 않습니다.</span><button type="button" id="demoReset">예시 초기화</button></div>
 </div>
 <main class="wrap" id="app"><div class="loading">불러오는 중…</div></main>
 <footer class="wrap">
@@ -260,7 +260,6 @@ const Mock = (() => {
     노트북: ['전원이 안 켜져요', '화면이 안 나와요', '인터넷이 안 돼요', '부서졌어요', '기타'],
   };
   const SLOT_OPTS = ['단자망가짐', '충전선망가짐']; // 현황 탭 충전 칸 드롭다운 항목
-  const PW = { '1234': '', '5678': '김지원' };     // '교사인증 비밀번호' 탭 예시
   const TEACHERS = ['김지원', '박서연', '이도윤', '최하늘', '정민준']; // 교사 명단 A열 예시
   const STAFF = ['교무실'], STAFF_DEV = ['태블릿', '노트북'];
   const cabItem = s => /도어|문/.test(s) ? '도어' : /램프|살균/.test(s) ? '살균램프' : /타이머/.test(s) ? '타이머' : /전원/.test(s) ? '전원' : '비고';
@@ -299,7 +298,6 @@ const Mock = (() => {
 
   function handle(a, p) {
     if (a.startsWith('admin_') && p.admin !== 'demo') return { ok: false, error: 'ADMIN', message: '관리자 비밀번호가 맞지 않습니다. (체험 모드: demo)' };
-    const teacherOk = p.admin === 'demo' || Object.prototype.hasOwnProperty.call(PW, String(p.upw || ''));
     switch (a) {
       case 'init': return { ok: true, school: '영신중학교 (체험)', symptoms: SYMPTOMS, slotOptions: SLOT_OPTS, equipment: EQUIP, staffDevices: STAFF_DEV, teachers: TEACHERS,
         classes: CLASSES.map(c => ({ cls: c })).concat(STAFF.map(c => ({ cls: c, staff: true }))) };
@@ -332,7 +330,7 @@ const Mock = (() => {
         db.reports.push(r); gridWrite(r, p.issue);
         save(); return { ok: true, id: r.id, mailed: 2, message: '신고가 접수되었습니다. 고맙습니다!' };
       }
-      case 'usage_check': return { ok: true, name: p.admin === 'demo' ? '' : PW[p.upw] };
+      case 'usage_check': return { ok: true, name: '' };
       case 'usage_list': return { ok: true, usage: db.usage.filter(u => u.cls === p.cls).slice(-15).reverse() };
       case 'usage':
         db.usage.push({ date: p.date || today(), cls: p.cls, periods: (p.periods || []).join(','), teacher: p.teacher, subject: p.subject, condition: p.condition, memo: p.memo });
@@ -368,7 +366,6 @@ const Mock = (() => {
 async function api(action, data = {}) {
   const payload = { action, k: state.code, ...data };
   if (state.adminKey) payload.admin = state.adminKey;
-  if (state.upw) payload.upw = state.upw;
   if (DEMO) return Mock.call(action, payload);
   try {
     // text/plain으로 보내야 브라우저의 사전 확인(CORS preflight)이 생기지 않습니다.
@@ -387,7 +384,6 @@ const state = {
   cls: params.get('c') || '',
   grade: '',
   adminKey: store.get('tm-admin', true) || '',
-  upw: store.get('tm-upw', true) || '',
   teacherName: store.get('tm-tname', true) || '',
   adminTab: 'open',
   adminMode: location.hash === '#admin' || params.has('admin'),
@@ -665,37 +661,14 @@ function bindIssue(el, list, build, after, needName) {
   };
 }
 
-/* ───────── 태블릿 사용대장 (비밀번호) ───────── */
+/* ───────── 태블릿 사용대장 ───────── */
 async function openUsage() {
   show(`${backBtn()}<div class="loading">불러오는 중…</div>`); bindBack();
   const r = await api('usage_list', { cls: state.cls });
-  if (!r.ok) { if (r.error === 'UPW') { state.upw = ''; store.del('tm-upw', true); return usageGate(r.message); } return renderError(r.message); }
+  if (!r.ok) return renderError(r.error === 'UPW'
+    ? '서버(Apps Script)가 아직 예전 버전입니다. 관리 담당 선생님께 Code.gs를 새 버전으로 다시 배포해 달라고 알려 주세요.'
+    : r.message);
   renderUsage(r.usage);
-}
-function usageGate(msg) {
-  show(`${backBtn()}
-    <section class="panel form" aria-labelledby="ugTitle">
-      <span class="lock">${ICON.lock}</span>
-      <h2 id="ugTitle">태블릿 사용대장</h2>
-      <p class="muted">선생님 전용 메뉴입니다. 사용대장 비밀번호를 입력해 주세요.</p>
-      ${msg ? `<p class="err">${esc(msg)}</p>` : ''}
-      <div class="field"><label for="upw">비밀번호</label><input type="password" id="upw" inputmode="numeric" autocomplete="off"></div>
-      <button type="button" class="primary" id="upwGo">확인</button>
-    </section>`);
-  bindBack();
-  const go = async () => {
-    const v = document.getElementById('upw').value.trim(); if (!v) return;
-    const btn = document.getElementById('upwGo'); btn.disabled = true; btn.textContent = '확인 중…';
-    state.upw = v;
-    const r = await api('usage_check');
-    if (!r.ok) { state.upw = ''; return usageGate(r.message); }
-    store.set('tm-upw', v, true);
-    if (r.name) { state.teacherName = r.name; store.set('tm-tname', r.name, true); }
-    openUsage();
-  };
-  document.getElementById('upwGo').onclick = go;
-  document.getElementById('upw').onkeydown = e => { if (e.key === 'Enter') go(); };
-  document.getElementById('upw').focus();
 }
 function renderUsage(usage) {
   const teacher = state.teacherName || store.get('tm-teacher') || '';
@@ -809,7 +782,7 @@ async function renderAdmin() {
 }
 function renderAdminLogin(msg) {
   show(`<div class="panel form"><span class="lock">${ICON.lock}</span><h2>관리자 로그인</h2>
-    <p class="muted">${DEMO ? '체험 모드의 관리자 비밀번호는 <b>demo</b> 입니다.' : 'Apps Script의 setup() 실행 기록에 나온 관리자 비밀번호를 입력하세요.'}</p>
+    <p class="muted">${DEMO ? '체험 모드의 관리자 비밀번호는 <b>demo</b> 입니다.' : 'Apps Script의 check() 실행 기록에 나온 관리자 비밀번호를 입력하세요.'}</p>
     ${msg ? `<p class="err">${esc(msg)}</p>` : ''}
     <div class="field"><label for="ak">관리자 비밀번호</label><input type="password" id="ak" autocomplete="current-password"></div>
     <button type="button" class="primary" id="akGo">로그인</button></div>`);
