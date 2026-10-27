@@ -601,7 +601,7 @@ function staffMenu(cls) {
       <section class="report-box" aria-labelledby="secRep">
       <h3 class="menu-sec" id="secRep">고장 신고</h3>
       <div class="tiles">${devs.map(dv => { const n = openOf(dv).length;
-        return `<button type="button" class="tile${n ? ' has' : ''}" data-dev="${esc(dv)}"><span class="ic">${iconFor(dv)}</span><span class="tx"><b>${esc(dv)}</b><small class="${n ? 'bad' : ''}">${n ? `지금 ${n}건 접수됨` : '이름을 골라 신고해요'}</small></span></button>`; }).join('')}</div>
+        return `<button type="button" class="tile${n ? ' has' : ''}" data-dev="${esc(dv)}"><span class="ic">${iconFor(dv)}</span><span class="tx"><b>${esc(dv)}</b>${n ? `<small class="bad">지금 ${n}건 접수됨</small>` : ''}</span></button>`; }).join('')}</div>
       </section>
     </nav>`);
   $app.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => go(inClass(cls, () => openStaff(b.dataset.dev))));
