@@ -300,7 +300,6 @@ const Mock = (() => {
   function handle(a, p) {
     if (a.startsWith('admin_') && p.admin !== 'demo') return { ok: false, error: 'ADMIN', message: '관리자 비밀번호가 맞지 않습니다. (체험 모드: demo)' };
     const teacherOk = p.admin === 'demo' || Object.prototype.hasOwnProperty.call(PW, String(p.upw || ''));
-    if (a.startsWith('usage') && !teacherOk) return { ok: false, error: 'UPW', message: '사용대장 비밀번호가 맞지 않습니다.' };
     switch (a) {
       case 'init': return { ok: true, school: '영신중학교 (체험)', symptoms: SYMPTOMS, slotOptions: SLOT_OPTS, equipment: EQUIP, staffDevices: STAFF_DEV, teachers: TEACHERS,
         classes: CLASSES.map(c => ({ cls: c })).concat(STAFF.map(c => ({ cls: c, staff: true }))) };
@@ -502,7 +501,7 @@ async function openMenu(cls) {
   show(`
     <div class="menu-title"><small>${esc(gradeOf(cls))}</small><h2>${esc(clsLabel(cls))}</h2></div>
     <nav class="menu" aria-label="메뉴">
-      ${btn('usage', ICON.book, '태블릿 사용대장', '선생님 전용 · 비밀번호 필요')}
+      ${btn('usage', ICON.book, '태블릿 사용대장', '수업에 사용한 기록을 남겨요')}
       <section class="report-box" aria-labelledby="secRep">
       <h3 class="menu-sec" id="secRep">고장 신고</h3>
       <div class="tiles">
@@ -668,7 +667,6 @@ function bindIssue(el, list, build, after, needName) {
 
 /* ───────── 태블릿 사용대장 (비밀번호) ───────── */
 async function openUsage() {
-  if (!state.upw) return usageGate();
   show(`${backBtn()}<div class="loading">불러오는 중…</div>`); bindBack();
   const r = await api('usage_list', { cls: state.cls });
   if (!r.ok) { if (r.error === 'UPW') { state.upw = ''; store.del('tm-upw', true); return usageGate(r.message); } return renderError(r.message); }
