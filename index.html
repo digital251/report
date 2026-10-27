@@ -368,9 +368,15 @@ async function api(action, data = {}) {
   try {
     // text/plain으로 보내야 브라우저의 사전 확인(CORS preflight)이 생기지 않습니다.
     const res = await fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), redirect: 'follow' });
-    return await res.json();
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch (e) {
+      // 서버가 정상 형식이 아닌 화면(구글 오류 페이지 등)을 돌려준 경우: 무엇이 왔는지 보여 줌
+      const plain = text.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+      return { ok: false, message: `서버(Apps Script)가 올바른 답을 주지 않았습니다 (상태 ${res.status}). 관리 담당 선생님께 이 내용을 알려 주세요: ${plain || '빈 응답'}` };
+    }
   } catch (e) {
-    return { ok: false, message: '서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.' };
+    return { ok: false, message: '서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요. (' + (e && e.message ? e.message : e) + ')' };
   }
 }
 
