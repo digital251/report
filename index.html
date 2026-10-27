@@ -2,6 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>태블릿 충전함 관리</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -207,6 +210,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 <main class="wrap" id="app"><div class="loading">불러오는 중…</div></main>
 <footer class="wrap">
   <span>고장은 발견한 즉시 신고해 주세요.</span>
+  <span>화면 버전 10-27b</span>
   <button type="button" class="link-btn" id="adminLink">관리자</button>
 </footer>
 <div id="layer"></div>
@@ -611,7 +615,6 @@ function openCabinet() {
     <section class="panel form">
       <h3>충전함 자체에 문제가 있나요?</h3>
       ${problemField('예: 문이 안 잠겨요 / 살균램프가 안 켜져요')}
-      ${whoField()}
       <button type="button" class="primary" id="send" disabled>신고하기</button>
     </section>
     ${openList(openOf(['충전함', '충전함 칸']))}`);
@@ -631,7 +634,6 @@ function openEquip(name) {
     <section class="panel form">
       <h2>${esc(clsLabel(state.cls))} ${esc(name)}</h2>
       ${problemField('어떤 문제가 있는지 적어 주세요. 예: 연결해도 화면이 안 나와요')}
-      ${whoField()}
       <button type="button" class="primary" id="send" disabled>신고하기</button>
     </section>
     ${openList(openOf(name))}`);
@@ -651,15 +653,14 @@ function whoField() {
   return `<div class="field"><label for="who">신고한 사람 (선택)</label><input type="text" id="who" maxlength="30" placeholder="예: 12번 학생"></div>`;
 }
 function extraFields() {
-  return `<div class="field"><label for="memo">자세한 내용 (선택)</label><textarea id="memo" maxlength="300" placeholder="예: 꽂으면 충전 표시가 깜빡이다 꺼져요"></textarea></div>
-    <div class="field"><label for="who">신고한 사람 (선택)</label><input type="text" id="who" maxlength="30" placeholder="예: 12번 학생"></div>`;
+  return `<div class="field"><label for="memo">문제점 (선택)</label><textarea id="memo" maxlength="300" placeholder="예: 꽂으면 충전 표시가 깜빡이다 꺼져요"></textarea></div>`;
 }
 /** list가 있으면 버튼으로 고르기(충전 칸), 없으면 문제점을 직접 적기 */
 function reportSheet(title, note, list, build, after) {
   const chips = list && list.length;
   sheet(title, `${note || (chips ? '<p class="muted">어디가 고장인지 하나만 골라 주세요.</p>' : '')}
     <div class="form">${chips ? `<div class="issue-list" role="group" aria-label="증상">${list.map((s, i) => `<button type="button" class="chip danger" aria-pressed="false" data-i="${i}">${esc(s)}</button>`).join('')}</div>${extraFields()}`
-      : `${problemField('예: 충전기를 꽂아도 충전이 안 돼요')}${whoField()}`}
+      : `${problemField('예: 충전기를 꽂아도 충전이 안 돼요')}`}
     <button type="button" class="primary" id="send" disabled>신고하기</button></div>`,
     el => bindIssue(el, list, build, after));
 }
@@ -681,7 +682,7 @@ function bindIssue(el, list, build, after, needName) {
     if (!issue) return toast('문제점을 적어 주세요.');
     if (needName && !el.querySelector('#who').value.trim()) return toast('선생님 이름을 적어 주세요.');
     send.disabled = true; send.textContent = '보내는 중…';
-    const r = await api('report', { cls: state.cls, memo: chips ? memo.value.trim() : '', reporter: el.querySelector('#who').value.trim(), ...build(issue) });
+    const r = await api('report', { cls: state.cls, memo: chips ? memo.value.trim() : '', reporter: (el.querySelector('#who') || { value: '' }).value.trim(), ...build(issue) });
     if (!r.ok) { send.disabled = false; send.textContent = '신고하기'; return toast(r.message); }
     toast(r.duplicate ? r.message : `${r.message}${r.mailed ? ' 담당 선생님께 메일로 알렸어요.' : ''}`);
     if (r.data && r.data.ok) { state.data = r.data; after(); }      // 신고 응답에 새 반 정보가 함께 옴 (한 번 더 묻지 않음)
