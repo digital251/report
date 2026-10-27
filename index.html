@@ -151,6 +151,12 @@ textarea { min-height: 70px; resize: vertical; }
 .issue-list .chip { border-radius: 12px; padding: 13px 14px; font-weight: 600; }
 .primary { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 12px; padding: 14px; font-weight: 700; font-size: 16px; }
 .primary:disabled { opacity: .5; cursor: default; }
+/* 서버에 보내는 동안: 버튼 글자가 깜박이고 작은 원이 돎 */
+button.busy, button.busy:disabled { opacity: 1; cursor: progress; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+button.busy .busy-tx { animation: blink 1s ease-in-out infinite; }
+button.busy .busy-ring { width: 1em; height: 1em; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; flex: none; }
+@keyframes blink { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { button.busy .busy-tx { animation-duration: 2s; } }
 .ghost { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 12px; font-weight: 600; }
 .ghost.sm { padding: 6px 10px; font-size: 13px; }
 .lock { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); }
@@ -390,7 +396,6 @@ const state = {
   cls: params.get('c') || '',
   grade: '',
   adminKey: store.get('tm-admin', true) || '',
-  teacherName: store.get('tm-tname', true) || '',
   adminTab: 'open',
   adminMode: location.hash === '#admin' || params.has('admin'),
   init: null, data: null,
@@ -442,6 +447,13 @@ function sheet(title, bodyHTML, onMount) {
 function setChip(text, fn) { $chip.hidden = !text; $chip.textContent = text || ''; $chip.onclick = fn || null; }
 function show(html) { closeSheet(); $app.innerHTML = html; window.scrollTo(0, 0); }
 const LOADING = '<div class="loading" role="status" aria-label="불러오는 중"><span class="spinner"></span></div>';
+/** 버튼을 '보내는 중' 상태로 바꿈(누르지 못하게 하고 글자를 깜박임). 돌려받은 함수를 부르면 원래대로 */
+function busy(btn, text) {
+  const html = btn.innerHTML;
+  btn.disabled = true; btn.classList.add('busy'); btn.setAttribute('aria-busy', 'true');
+  btn.innerHTML = `<span class="busy-ring" aria-hidden="true"></span><span class="busy-tx">${esc(text)}</span>`;
+  return () => { btn.disabled = false; btn.classList.remove('busy'); btn.removeAttribute('aria-busy'); btn.innerHTML = html; };
+}
 
 /* ───────── 시작 ───────── */
 async function boot() {
@@ -592,15 +604,15 @@ function staffMenu(cls) {
   $app.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => go(inClass(cls, () => openStaff(b.dataset.dev))));
 }
 /** 선생님 이름: 직접 입력 (지난번에 쓴 이름이 미리 채워짐) */
-function teacherSelect(id, selected) {
+function teacherInput(id, selected) {
   return `<input type="text" id="${id}" value="${esc(selected || '')}" placeholder="선생님 이름을 적어 주세요" maxlength="30" autocomplete="name">`;
 }
 function openStaff(device) {
-  const me = store.get('tm-staff-name') || state.teacherName || '';
+  const me = store.get('tm-staff-name') || '';
   show(`${backBtn()}
     <section class="panel form">
       <h2>${esc(state.cls)} · 선생님 ${esc(device)}</h2>
-      <div class="field"><label for="who">선생님</label>${teacherSelect('who', me)}</div>
+      <div class="field"><label for="who">선생님</label>${teacherInput('who', me)}</div>
       ${problemField('예: 충전기를 꽂아도 화면이 안 켜져요')}
       <button type="button" class="primary" id="send" disabled>신고하기</button>
     </section>
@@ -724,9 +736,9 @@ function bindIssue(el, list, build, after, needName) {
     const issue = chips ? sel : memo.value.trim();
     if (!issue) return toast('문제점을 적어 주세요.');
     if (needName && !el.querySelector('#who').value.trim()) return toast('선생님 이름을 적어 주세요.');
-    send.disabled = true; send.textContent = '보내는 중…';
+    const done = busy(send, '보내는 중…');
     const r = await api('report', { cls: state.cls, memo: chips ? memo.value.trim() : '', reporter: (el.querySelector('#who') || { value: '' }).value.trim(), ...build(issue) });
-    if (!r.ok) { send.disabled = false; send.textContent = '신고하기'; return toast(r.message); }
+    if (!r.ok) { done(); return toast(r.message); }
     toast(r.duplicate ? r.message : `${r.message}${r.mailed ? ' 담당 선생님께 메일로 알렸어요.' : ''}`);
     if (r.data && r.data.ok) { state.data = r.data; after(); }      // 신고 응답에 새 반 정보가 함께 옴 (한 번 더 묻지 않음)
     else if (await loadClass(state.cls)) after();
@@ -745,7 +757,7 @@ async function openUsage() {
   renderUsage(r.usage);
 }
 function renderUsage(usage) {
-  const teacher = state.teacherName || store.get('tm-teacher') || '';
+  const teacher = store.get('tm-teacher') || '';
   const subject = store.get('tm-subject') || '';
   show(`${backBtn()}
     <section class="panel form" aria-label="사용 기록 입력">
@@ -754,7 +766,7 @@ function renderUsage(usage) {
       <div class="field"><span class="lab" id="pLab">교시 (여러 개 선택 가능)</span>
         <div class="chips" role="group" aria-labelledby="pLab">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button type="button" class="chip" aria-pressed="false" data-p="${n}">${n}교시</button>`).join('')}</div></div>
       <div class="row2">
-        <div class="field"><label for="uTeacher">선생님</label>${teacherSelect('uTeacher', teacher)}</div>
+        <div class="field"><label for="uTeacher">선생님</label>${teacherInput('uTeacher', teacher)}</div>
         <div class="field"><label for="uSubject">교과</label><input type="text" id="uSubject" value="${esc(subject)}" placeholder="예: 과학" maxlength="30"></div>
       </div>
       <div class="field"><span class="lab" id="cLab2">반납할 때 상태</span>
@@ -782,10 +794,10 @@ function renderUsage(usage) {
     const s = document.getElementById('uSubject').value.trim();
     if (!periods.size) return toast('교시를 하나 이상 골라 주세요.');
     if (!t) return toast('선생님 이름을 적어 주세요.');
-    save.disabled = true; save.textContent = '저장 중…';
+    const done = busy(save, '저장하는 중…');
     const r = await api('usage', { cls: state.cls, date: document.getElementById('uDate').value, periods: [...periods].sort((a, b) => a - b),
       teacher: t, subject: s, condition, memo: document.getElementById('uMemo').value.trim() });
-    if (!r.ok) { save.disabled = false; save.textContent = '기록 저장'; return toast(r.message); }
+    if (!r.ok) { done(); return toast(r.message); }
     store.set('tm-teacher', t); store.set('tm-subject', s);
     if (condition === '이상 있음') { toast('저장했어요. 고장 난 번호를 눌러 신고해 주세요.'); if (await loadClass(state.cls)) go(openTablet, true); }
     else { toast(r.message); openUsage(); }
@@ -821,9 +833,9 @@ async function renderAdmin() {
         <button type="button" class="ghost sm" data-st="반려" data-id="${esc(x.id)}">잘못된 신고</button></div></div>`).join('') : '<div class="empty">처리할 신고가 없어요.</div>'}</div>`;
     body.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
       const id = b.dataset.id; const note = (body.querySelector(`[data-note="${CSS.escape(id)}"]`) || {}).value;
-      b.disabled = true;
+      const done = busy(b, '바꾸는 중…');
       const u = await api('admin_update', { id, status: b.dataset.st, note });
-      if (!u.ok) { b.disabled = false; return toast(u.message); }
+      if (!u.ok) { done(); return toast(u.message); }
       toast(`${b.dataset.st}(으)로 바꿨어요.`); renderAdmin();
     });
   } else {
