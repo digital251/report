@@ -271,14 +271,14 @@ const Mock = (() => {
      ['2-5', 20, '충전선망가짐'], ['2-6', 31, '충전선망가짐'], ['2-6', 32, '충전선망가짐'], ['2-6', 33, '충전선망가짐'], ['2-6', 34, '충전선망가짐'], ['2-6', 35, '충전선망가짐'],
      ['명지정', 9, '단자망가짐']].forEach(([c, n, s]) => db.grid[c][n - 1] = s);
     db.door['2-3'] = '고장'; db.lamp['2-1'] = '살균램프 나감'; db.lamp['3-1'] = '살균램프 나감'; db.lamp['1-5'] = '타이머 없음';
-    const add = (id, at, cls, target, num, issue, memo, status) => db.reports.push({ id, at, cls, target, num, issue, memo, reporter: '', status, doneAt: '', note: '', synced: 'N' });
+    const add = (id, at, cls, target, num, issue, memo, status) => db.reports.push({ id, at, cls, target, num, issue, memo, reporter: '', status, doneAt: '', note: '' });
     add('R1', '2026-10-21 09:12', '2-3', '태블릿', 6, '충전이 안 돼요', '꽂아도 반응 없음', '수리중');
     add('R2', '2026-10-22 14:05', '2-3', '태블릿', 14, '화면이 깨졌어요', '', '접수');
     add('R3', '2026-10-22 14:06', '2-3', '충전함 칸', 7, '단자망가짐', '', '접수');
     add('R4', '2026-10-22 11:40', '2-3', '충전함', '', '문이 안 닫히거나 안 잠겨요', '잠금 걸쇠가 헐거움', '접수');
     add('R5', '2026-10-23 08:20', '2-3', 'HDMI', '', '화면이 안 나와요', '노트북 연결 시 신호 없음', '접수');
     add('R6', '2026-10-23 08:50', '1-2', '태블릿', 15, '충전이 안 돼요', '', '접수');
-    db.reports.push({ id: 'R7', at: '2026-10-23 10:15', cls: '교무실', target: '노트북', num: '', issue: '전원이 안 켜져요', memo: '', reporter: '박서연', status: '접수', doneAt: '', note: '', synced: 'N' });
+    db.reports.push({ id: 'R7', at: '2026-10-23 10:15', cls: '교무실', target: '노트북', num: '', issue: '전원이 안 켜져요', memo: '', reporter: '박서연', status: '접수', doneAt: '', note: '' });
     db.usage.push(
       { date: '2026-10-22', cls: '2-3', periods: '3', teacher: '박서연', subject: '과학', condition: '이상 없음', memo: '' },
       { date: '2026-10-23', cls: '2-3', periods: '5,6', teacher: '김지원', subject: '국어', condition: '이상 있음', memo: '14번 화면 깨짐 확인' });
@@ -318,7 +318,7 @@ const Mock = (() => {
           if (!p.reporter) return { ok: false, message: '선생님 이름을 골라 주세요.' };
           if (db.reports.find(r => r.cls === p.cls && r.target === p.item && r.reporter === p.reporter && r.issue === p.issue && isOpen(r.status)))
             return { ok: true, duplicate: true, message: '이미 접수된 고장입니다. 수리를 기다려 주세요.' };
-          db.reports.push({ id: 'R' + Date.now(), at: fmt(new Date()), cls: p.cls, target: p.item, num: '', issue: p.issue, memo: p.memo || '', reporter: p.reporter, status: '접수', doneAt: '', note: '', synced: 'N' });
+          db.reports.push({ id: 'R' + Date.now(), at: fmt(new Date()), cls: p.cls, target: p.item, num: '', issue: p.issue, memo: p.memo || '', reporter: p.reporter, status: '접수', doneAt: '', note: '' });
           save(); return { ok: true, mailed: 2, message: '신고가 접수되었습니다. 고맙습니다!' };
         }
         const target = { tablet: '태블릿', slot: '충전함 칸', cabinet: '충전함' }[p.target] || (p.target === 'equip' && EQUIP.includes(p.item) ? p.item : null);
@@ -326,7 +326,7 @@ const Mock = (() => {
         const num = (target === '태블릿' || target === '충전함 칸') ? Number(p.num) : '';
         if (db.reports.find(r => r.cls === p.cls && r.target === target && String(r.num) === String(num) && r.issue === p.issue && isOpen(r.status)))
           return { ok: true, duplicate: true, message: '이미 접수된 고장입니다. 수리를 기다려 주세요.' };
-        const r = { id: 'R' + Date.now(), at: fmt(new Date()), cls: p.cls, target, num, issue: p.issue, memo: p.memo || '', reporter: p.reporter || '', status: '접수', doneAt: '', note: '', synced: 'N' };
+        const r = { id: 'R' + Date.now(), at: fmt(new Date()), cls: p.cls, target, num, issue: p.issue, memo: p.memo || '', reporter: p.reporter || '', status: '접수', doneAt: '', note: '' };
         db.reports.push(r); gridWrite(r, p.issue);
         save(); return { ok: true, id: r.id, mailed: 2, message: '신고가 접수되었습니다. 고맙습니다!' };
       }
@@ -338,13 +338,12 @@ const Mock = (() => {
       case 'admin_check': return { ok: true, code: 'demo' };
       case 'admin_data': {
         const all = db.reports.slice().reverse();
-        return { ok: true, open: all.filter(r => isOpen(r.status)), unsynced: all.filter(r => r.synced !== 'Y'), recentDone: all.filter(r => !isOpen(r.status)).slice(0, 30) };
+        return { ok: true, open: all.filter(r => isOpen(r.status)), recentDone: all.filter(r => !isOpen(r.status)).slice(0, 30) };
       }
       case 'admin_update': {
         const r = db.reports.find(x => x.id === p.id); if (!r) return { ok: false, message: '신고를 찾을 수 없습니다.' };
         r.status = p.status; r.doneAt = fmt(new Date()); if (p.note) r.note = p.note;
         if (!isOpen(r.status)) {
-          r.synced = 'N';
           const same = x => x !== r && x.cls === r.cls && x.target === r.target && isOpen(x.status) &&
             (r.target === '충전함 칸' ? String(x.num) === String(r.num) : cabItem(x.issue) === cabItem(r.issue));
           const other = db.reports.find(same);
@@ -352,7 +351,6 @@ const Mock = (() => {
         }
         save(); return { ok: true };
       }
-      case 'admin_synced': { let n = 0; db.reports.forEach(r => { if ((p.ids || []).includes(r.id)) { r.synced = 'Y'; n++; } }); save(); return { ok: true, count: n }; }
     }
     return { ok: false, message: '알 수 없는 요청입니다.' };
   }
@@ -413,15 +411,29 @@ async function boot() {
   document.getElementById('demoBar').hidden = !DEMO;
   if (state.adminMode) return renderAdmin();
   if (!state.code) return renderCodeGate();
+  // 지난번에 받아 둔 학년·반 목록이 있으면 바로 화면을 띄우고, 새 목록은 뒤에서 받아 옵니다.
+  const key = 'tm-init:' + (DEMO ? 'demo' : CONFIG.API_URL);
+  let cached = null;
+  try { cached = JSON.parse(store.get(key) || 'null'); } catch (e) {}
+  const start = r => {
+    state.init = r;
+    document.getElementById('schoolName').textContent = r.school;
+    if (state.cls && r.classes.some(c => c.cls === state.cls)) return openMenu(state.cls);
+    renderHome();
+  };
+  if (cached && cached.ok) start(cached);
   const r = await api('init');
   if (!r.ok) {
-    if (r.error === 'CODE') { store.del('tm-code'); state.code = ''; return renderCodeGate(r.message); }
-    return renderError(r.message);
+    if (r.error === 'CODE') { store.del('tm-code'); store.del(key); state.code = ''; return renderCodeGate(r.message); }
+    if (!cached) return renderError(r.message);
+    return;
   }
+  store.set(key, JSON.stringify(r));
+  if (!cached) return start(r);
+  const changed = JSON.stringify(cached) !== JSON.stringify(r);
   state.init = r;
   document.getElementById('schoolName').textContent = r.school;
-  if (state.cls && r.classes.some(c => c.cls === state.cls)) return openMenu(state.cls);
-  renderHome();
+  if (changed && !state.data && $app.querySelector('.pick')) renderHome();
 }
 function renderError(msg) {
   show(`<div class="panel form"><h3>문제가 생겼어요</h3><p class="muted">${esc(msg)}</p><button class="ghost" type="button" onclick="location.reload()">다시 시도</button></div>`);
@@ -657,7 +669,8 @@ function bindIssue(el, list, build, after, needName) {
     const r = await api('report', { cls: state.cls, memo: el.querySelector('#memo').value.trim(), reporter: el.querySelector('#who').value.trim(), ...build(sel) });
     if (!r.ok) { send.disabled = false; send.textContent = '신고하기'; return toast(r.message); }
     toast(r.duplicate ? r.message : `${r.message}${r.mailed ? ' 담당 선생님께 메일로 알렸어요.' : ''}`);
-    if (await loadClass(state.cls)) after();
+    if (r.data && r.data.ok) { state.data = r.data; after(); }      // 신고 응답에 새 반 정보가 함께 옴 (한 번 더 묻지 않음)
+    else if (await loadClass(state.cls)) after();
   };
 }
 
@@ -727,7 +740,7 @@ async function renderAdmin() {
   if (!chk.ok) { state.adminKey = ''; store.del('tm-admin', true); return renderAdminLogin(chk.message); }
   state.adminCode = chk.code;
   show(`<div class="form no-print" style="gap:10px"><h2>관리자</h2>
-    <div class="subtabs" role="tablist">${[['open', '처리할 신고'], ['sync', '관리시스템 반영'], ['done', '처리 완료'], ['qr', 'QR 코드']].map(([k, l]) =>
+    <div class="subtabs" role="tablist">${[['open', '처리할 신고'], ['done', '처리 완료'], ['qr', 'QR 코드']].map(([k, l]) =>
       `<button type="button" role="tab" aria-selected="${state.adminTab === k}" data-at="${k}">${l}</button>`).join('')}</div></div>
     <div id="adminBody"><div class="loading">불러오는 중…</div></div>`);
   $app.querySelectorAll('[data-at]').forEach(b => b.onclick = () => { state.adminTab = b.dataset.at; renderAdmin(); });
@@ -752,37 +765,14 @@ async function renderAdmin() {
       if (!u.ok) { b.disabled = false; return toast(u.message); }
       toast(`${b.dataset.st}(으)로 바꿨어요.`); renderAdmin();
     });
-  } else if (state.adminTab === 'done') {
+  } else {
     body.innerHTML = `<div class="list">${r.recentDone.length ? r.recentDone.map(x => `<div class="item"><div class="item-top"><span class="pill ok">${esc(x.status)}</span><b>${esc(whereOf(x))}</b><span>${esc(x.issue)}</span></div>
       <div class="item-meta">${esc(x.at)} 접수 · ${esc(x.doneAt)} 처리${x.note ? ' · ' + esc(x.note) : ''}</div></div>`).join('') : '<div class="empty">아직 처리한 신고가 없어요.</div>'}</div>`;
-  } else {
-    const lines = r.unsynced.map(x => `${x.cls}\t${whereShort(x)}\t${x.issue}\t${x.status}\t${x.at}`);
-    body.innerHTML = `<div class="form">
-      <p class="muted">새로 신고되었거나 수리가 끝나서 관리시스템에 옮겨야 할 항목만 모았어요. 옮긴 뒤 체크하고 <b>반영 완료</b>를 누르면 목록에서 빠져요.</p>
-      ${r.unsynced.length ? `<div class="actions"><button type="button" class="ghost sm" id="selAll">모두 선택</button><button type="button" class="ghost sm" id="copyList">목록 복사</button><button type="button" class="ghost sm" id="markDone" style="color:var(--accent)">선택 항목 반영 완료</button></div>` : ''}
-      <div class="list">${r.unsynced.length ? r.unsynced.map(x => `<label class="item check-row"><input type="checkbox" value="${esc(x.id)}">
-        <div style="min-width:0"><div class="item-top"><span class="pill ${pillOf(x.status)}">${esc(x.status || '접수')}</span><b>${esc(whereOf(x))}</b><span>${esc(x.issue)}</span></div>
-        <div class="item-meta">${esc(x.at)} 접수${x.doneAt ? ' · ' + esc(x.doneAt) + ' 처리' : ''}</div></div></label>`).join('') : '<div class="empty">관리시스템에 옮길 항목이 없어요.</div>'}</div>
-      <textarea id="copyBox" readonly hidden>${esc(lines.join('\n'))}</textarea></div>`;
-    if (!r.unsynced.length) return;
-    document.getElementById('selAll').onclick = () => body.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = true);
-    document.getElementById('copyList').onclick = () => {
-      const box = document.getElementById('copyBox');
-      const fallback = () => { box.hidden = false; box.select(); toast('선택된 내용을 복사해 주세요 (Ctrl+C).'); };
-      try { navigator.clipboard.writeText(box.value).then(() => toast('목록을 복사했어요.'), fallback); } catch (e) { fallback(); }
-    };
-    document.getElementById('markDone').onclick = async () => {
-      const ids = [...body.querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);
-      if (!ids.length) return toast('반영한 항목을 먼저 체크해 주세요.');
-      const u = await api('admin_synced', { ids });
-      if (!u.ok) return toast(u.message);
-      toast(`${u.count}건을 반영 완료로 표시했어요.`); renderAdmin();
-    };
   }
 }
 function renderAdminLogin(msg) {
   show(`<div class="panel form"><span class="lock">${ICON.lock}</span><h2>관리자 로그인</h2>
-    <p class="muted">${DEMO ? '체험 모드의 관리자 비밀번호는 <b>demo</b> 입니다.' : 'Apps Script의 check() 실행 기록에 나온 관리자 비밀번호를 입력하세요.'}</p>
+    <p class="muted">${DEMO ? '체험 모드의 관리자 비밀번호는 <b>demo</b> 입니다.' : '학교코드_관리자비밀번호 탭에 적힌 관리자 비밀번호를 입력하세요.'}</p>
     ${msg ? `<p class="err">${esc(msg)}</p>` : ''}
     <div class="field"><label for="ak">관리자 비밀번호</label><input type="password" id="ak" autocomplete="current-password"></div>
     <button type="button" class="primary" id="akGo">로그인</button></div>`);
