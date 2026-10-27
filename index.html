@@ -692,6 +692,7 @@ function openEquip(name) {
     <section class="panel form">
       <h2>${esc(clsLabel(state.cls))} ${esc(name)}</h2>
       ${problemField('어떤 문제가 있는지 적어 주세요. 예: 연결해도 화면이 안 나와요')}
+      ${whoField('예: 김지원 선생님 / 12번 학생')}
       <button type="button" class="primary" id="send" disabled>신고하기</button>
     </section>
     ${openList(openOf(name))}`);
@@ -707,8 +708,8 @@ function reportItem(r) {
 function problemField(ph) {
   return `<div class="field"><label for="memo">문제점</label><textarea id="memo" maxlength="300" rows="3" placeholder="${esc(ph || '어떤 문제가 있는지 적어 주세요')}"></textarea></div>`;
 }
-function whoField() {
-  return `<div class="field"><label for="who">신고한 사람 (선택)</label><input type="text" id="who" maxlength="30" placeholder="예: 12번 학생"></div>`;
+function whoField(ph) {
+  return `<div class="field"><label for="who">신고자 (선택)</label><input type="text" id="who" maxlength="30" placeholder="${esc(ph || '예: 12번 학생')}"></div>`;
 }
 function extraFields() {
   return `<div class="field"><label for="memo">문제점 (선택)</label><textarea id="memo" maxlength="300" placeholder="예: 꽂으면 충전 표시가 깜빡이다 꺼져요"></textarea></div>`;
