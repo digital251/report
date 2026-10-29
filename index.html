@@ -55,7 +55,7 @@ h3 { font-size: 16px; margin: 0; }
 p { margin: 0; }
 .muted { color: var(--muted); }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.back { align-self: flex-start; border: 0; background: none; color: var(--accent); font-weight: 600; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px; }
+.back { align-self: flex-start; border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 19px; padding: 6px 0; display: inline-flex; align-items: center; gap: 6px; }
 
 /* 1. 학년 · 반 고르기 */
 .pick { background: var(--surface); border: 2px solid var(--fg); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
@@ -767,7 +767,7 @@ function renderUsage(usage) {
   const subject = store.get('tm-subject') || '';
   show(`${backBtn()}
     <section class="panel form" aria-label="사용 기록 입력">
-      <h2>${esc(clsLabel(state.cls))} 사용대장</h2>
+      <h2>${esc(clsLabel(state.cls))} 태블릿 사용대장</h2>
       <div class="field"><label for="uDate">사용한 날</label><input type="date" id="uDate" value="${today()}"></div>
       <div class="field"><span class="lab" id="pLab">교시 (여러 개 선택 가능)</span>
         <div class="chips" role="group" aria-labelledby="pLab">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button type="button" class="chip" aria-pressed="false" data-p="${n}">${n}교시</button>`).join('')}</div></div>
