@@ -55,7 +55,10 @@ h3 { font-size: 16px; margin: 0; }
 p { margin: 0; }
 .muted { color: var(--muted); }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.back { align-self: flex-start; border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 19px; padding: 6px 0; display: inline-flex; align-items: center; gap: 6px; }
+.back { align-self: flex-start; border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 19px; padding: 4px 0; display: inline-flex; align-items: center; gap: 10px; }
+.back-ic { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; flex: none; }
+.back-ic svg { width: 20px; height: 20px; }
+.back:hover .back-ic { filter: brightness(1.1); }
 
 /* 1. 학년 · 반 고르기 */
 .pick { background: var(--surface); border: 2px solid var(--fg); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
@@ -633,7 +636,7 @@ const iconFor = n => /와이파이|wi-?fi|무선/i.test(n) ? ICON.wifi
   : /HDMI|케이블|선|젠더|충전기/i.test(n) ? ICON.plug
   : /노트북/.test(n) ? ICON.laptop
   : /태블릿|패드/.test(n) ? ICON.tablet : ICON.tool;
-const backBtn = () => `<button type="button" class="back" id="back">‹ ${esc(clsLabel(state.cls))} 메뉴</button>`;
+const backBtn = () => `<button type="button" class="back" id="back"><span class="back-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></span>${esc(clsLabel(state.cls))} 메뉴</button>`;
 function bindBack() { const cls = state.cls; document.getElementById('back').onclick = () => back(() => openMenu(cls)); }
 const openList = list => `<section class="form"><h3>처리 중인 신고</h3>
   <div class="list">${list.length ? list.map(reportItem).join('') : '<div class="empty">처리 중인 신고가 없어요.</div>'}</div></section>`;
