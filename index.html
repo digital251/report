@@ -875,7 +875,7 @@ async function renderQR() {
     (state.init ? state.init.classes : []).forEach(c => {
       const url = `${b}?c=${encodeURIComponent(c.cls)}&k=${encodeURIComponent(state.adminCode || state.code)}`;
       const card = document.createElement('div'); card.className = 'qr-card';
-      card.innerHTML = `<div class="qr-box"></div><b>${esc(clsLabel(c.cls))}</b><small>고장 신고 · 사용대장<br>휴대폰 카메라로 찍어 주세요</small>`;
+      card.innerHTML = `<div class="qr-box"></div><b>${esc(clsLabel(c.cls))}</b><small>태블릿 사용대장 및 고장 신고<br>휴대폰 카메라로 찍어 주세요</small>`;
       grid.appendChild(card);
       if (window.QRCode) new QRCode(card.querySelector('.qr-box'), { text: url, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M });
       else card.querySelector('.qr-box').textContent = 'QR 라이브러리를 불러오지 못했어요';
