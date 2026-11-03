@@ -225,7 +225,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 <main class="wrap" id="app"><div class="loading" role="status" aria-label="불러오는 중"><span class="spinner"></span></div></main>
 <footer class="wrap">
   <span>고장은 발견한 즉시 신고해 주세요.</span>
-  <span>화면 버전 11-03</span>
+  <span>화면 버전 11-03b</span>
   <button type="button" class="link-btn" id="adminLink">관리자</button>
 </footer>
 <div id="layer"></div>
@@ -311,7 +311,7 @@ const Mock = (() => {
     if (a.startsWith('admin_') && p.admin !== 'demo') return { ok: false, error: 'ADMIN', message: '관리자 비밀번호가 맞지 않습니다. (체험 모드: demo)' };
     switch (a) {
       case 'init': {
-        const r = { ok: true, school: '영신중학교 (체험)', slotOptions: SLOT_OPTS, equipment: EQUIP, staffDevices: STAFF_DEV,
+        const r = { ok: true, school: '영신중학교 (체험)', slotOptions: SLOT_OPTS, partOptions: { 도어: ['고장', '건전지 없음', '열쇠 고장'], 살균램프: ['고장'], 타이머: ['고장'], 전원: ['고장'] }, equipment: EQUIP, staffDevices: STAFF_DEV,
           classes: CLASSES.map(c => ({ cls: c })).concat(STAFF.map(c => ({ cls: c, staff: true }))) };
         if (p.cls) r.data = handle('class', p);
         return r;
@@ -690,9 +690,15 @@ function openCabinet() {
   const PART_PH = { 도어: '예: 문이 안 잠겨요', 살균램프: '예: 살균램프가 안 켜져요', 타이머: '예: 타이머가 작동하지 않아요', 전원: '예: 충전함 전원이 안 들어와요' };
   $app.querySelectorAll('[data-part]').forEach(b => b.onclick = () => {
     const k = b.dataset.part, v = d.cabinet[k] || OK;
+    const opts = (state.init.partOptions || {})[k];          // 현황 탭 그 칸의 드롭다운 항목 (예: 고장 / 건전지 없음 / 열쇠 고장)
+    const build = issue => ({ target: 'cabinet', issue: `${k}: ${issue}` });
+    if (opts && opts.length) {
+      const note = `<p class="muted">${v !== OK ? `지금 <b style="color:var(--bad)">${esc(v)}</b>(으)로 표시되어 있어요. ` : ''}어떤 문제인지 하나 골라 주세요.</p>`;
+      return reportSheet(`충전함 ${k}`, note, opts, build, openCabinet);
+    }
     const note = v !== OK ? `<p class="muted">지금 <b style="color:var(--bad)">${esc(v)}</b>(으)로 표시되어 있어요.</p>` : '';
     sheet(`충전함 ${k}`, `${note}<div class="form">${problemField(PART_PH[k])}<button type="button" class="primary" id="send" disabled>신고하기</button></div>`,
-      el => bindIssue(el, null, issue => ({ target: 'cabinet', issue: `${k}: ${issue}` }), openCabinet));
+      el => bindIssue(el, null, build, openCabinet));
   });
   $app.querySelectorAll('[data-slot]').forEach(b => b.onclick = () => {
     const n = Number(b.dataset.slot);
