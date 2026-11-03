@@ -55,10 +55,7 @@ h3 { font-size: 16px; margin: 0; }
 p { margin: 0; }
 .muted { color: var(--muted); }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.back { align-self: flex-start; border: 0; background: none; color: var(--accent); font-weight: 700; font-size: 19px; padding: 4px 0; display: inline-flex; align-items: center; gap: 10px; }
-.back-ic { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; flex: none; }
-.back-ic svg { width: 20px; height: 20px; }
-.back:hover .back-ic { filter: brightness(1.1); }
+.back { align-self: flex-start; border: 0; background: none; color: var(--accent); font-weight: 600; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px; }
 
 /* 1. 학년 · 반 고르기 */
 .pick { background: var(--surface); border: 2px solid var(--fg); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
@@ -122,7 +119,9 @@ select { width: 100%; border: 1px solid var(--line); background: var(--surface-2
 
 /* 충전함 */
 .parts { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px; }
-.part { border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 8px 6px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.part { border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 8px 6px; text-align: center; display: flex; flex-direction: column; gap: 2px; font: inherit; color: inherit; cursor: pointer; min-height: 56px; justify-content: center; }
+.part:hover { border-color: var(--fg); }
+.part .go { font-size: 11px; color: var(--accent); font-weight: 600; }
 .part small { font-size: 12px; color: var(--muted); }
 .part b { font-size: 13px; font-weight: 600; line-height: 1.3; word-break: keep-all; }
 .part.bad { background: var(--bad-soft); border-color: var(--bad); }
@@ -154,12 +153,6 @@ textarea { min-height: 70px; resize: vertical; }
 .issue-list .chip { border-radius: 12px; padding: 13px 14px; font-weight: 600; }
 .primary { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 12px; padding: 14px; font-weight: 700; font-size: 16px; }
 .primary:disabled { opacity: .5; cursor: default; }
-/* 서버에 보내는 동안: 버튼 글자가 깜박이고 작은 원이 돎 */
-button.busy, button.busy:disabled { opacity: 1; cursor: progress; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-button.busy .busy-tx { animation: blink 1s ease-in-out infinite; }
-button.busy .busy-ring { width: 1em; height: 1em; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; flex: none; }
-@keyframes blink { 50% { opacity: .25; } }
-@media (prefers-reduced-motion: reduce) { button.busy .busy-tx { animation-duration: 2s; } }
 .ghost { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 12px; font-weight: 600; }
 .ghost.sm { padding: 6px 10px; font-size: 13px; }
 .lock { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); }
@@ -172,10 +165,7 @@ button.busy .busy-ring { width: 1em; height: 1em; border-radius: 50%; border: 2p
 .x { border: 0; background: var(--surface-2); width: 36px; height: 36px; border-radius: 50%; font-size: 18px; }
 @media (min-width: 600px) { .scrim { align-items: center; } .sheet { border-radius: 18px; } }
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 12px; z-index: 30; font-weight: 600; max-width: calc(100% - 32px); text-align: center; }
-.loading { display: grid; place-items: center; padding: 56px 0; }
-.spinner { width: 42px; height: 42px; border-radius: 50%; border: 4px solid var(--accent-soft); border-top-color: var(--accent); animation: spin .8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+.loading { text-align: center; padding: 40px; color: var(--muted); }
 
 /* 관리자 */
 .subtabs { display: flex; gap: 6px; overflow-x: auto; }
@@ -187,8 +177,7 @@ button.busy .busy-ring { width: 1em; height: 1em; border-radius: 50%; border: 2p
 .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .qr-card { border: 1.5px solid #111; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #fff; color: #111; break-inside: avoid; }
 .qr-card b { font-family: var(--f-display); font-weight: 400; font-size: 22px; }
-.qr-card small { font-size: 12px; text-align: center; line-height: 1.4; }
-.qr-card small strong { display: block; font-family: var(--f-display); font-weight: 400; font-size: 17px; line-height: 1.25; }
+.qr-card small { font-size: 11px; text-align: center; line-height: 1.35; }
 .qr-box { width: 120px; height: 120px; }
 .qr-box img, .qr-box canvas { width: 120px !important; height: 120px !important; }
 footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -220,10 +209,10 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 <div class="demo" id="demoBar" hidden>
   <div class="wrap"><span><b>체험 모드</b> · 예시 데이터로 동작하며 실제 시트·메일에는 반영되지 않습니다.</span><button type="button" id="demoReset">예시 초기화</button></div>
 </div>
-<main class="wrap" id="app"><div class="loading" role="status" aria-label="불러오는 중"><span class="spinner"></span></div></main>
+<main class="wrap" id="app"><div class="loading">불러오는 중…</div></main>
 <footer class="wrap">
   <span>고장은 발견한 즉시 신고해 주세요.</span>
-  <span>화면 버전 10-27b</span>
+  <span>화면 버전 11-03</span>
   <button type="button" class="link-btn" id="adminLink">관리자</button>
 </footer>
 <div id="layer"></div>
@@ -232,7 +221,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 /* ───────── 설정 ─────────
  * API_URL: Apps Script 배포 후 받은 웹앱 주소(…/exec). 비워 두면 체험 모드로 동작합니다. */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycby5wyNufh1jgYvEAk2obVV1VnLrL2Q-LgPrjY0occjmZdMhx7RLbm4banhuqvO3EEct/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbzuK1NXOVfcbP6ZAYYHLW2uSExTUFtzx2kVWncb_MUqhI3qYZKU00oBhN9qKajVF6y7/exec',
 };
 
 const PARTS = ['도어', '살균램프', '타이머', '전원'];
@@ -242,7 +231,6 @@ const ICON = {
   book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/><path d="M9 8h6M9 12h6"/></svg>',
   tablet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg>',
   box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M15 8v8"/><circle cx="18.5" cy="12" r=".6" fill="currentColor"/></svg>',
-  wifi: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5.2 12.4a10.4 10.4 0 0 1 13.6 0"/><path d="M8.5 16a5.5 5.5 0 0 1 7 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>',
   lan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M5 16v-4h14v4"/></svg>',
   plug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14v5a7 7 0 0 1-14 0z"/><path d="M9 7V3M15 7V3M12 19v3"/></svg>',
   laptop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg>',
@@ -269,7 +257,16 @@ const Mock = (() => {
   const KEY = 'tm-demo-v4';
   const CLASSES = ['1-1','1-2','1-3','1-4','1-5','1-6','1-7','1-8','2-1','2-2','2-3','2-4','2-5','2-6','2-7','2-8','2-9','3-1','3-2','3-3','3-4','3-5','3-6','3-7','3-8','명지정','과학실'];
   const EQUIP = ['유선랜', 'HDMI', 'TV']; // 기자재 문서의 탭 이름 예시
+  const SYMPTOMS = {
+    태블릿: ['충전이 안 돼요', '화면이 깨졌어요', '전원이 안 켜져요', '터치가 안 돼요', '소리가 안 나요', '태블릿이 없어요', '기타'],
+    충전함: ['문이 안 닫히거나 안 잠겨요', '살균램프가 안 켜져요', '타이머가 없거나 고장났어요', '충전함 전원이 안 들어와요', '기타'],
+    유선랜: ['인터넷이 안 돼요', '랜선이 끊어졌어요', '단자가 망가졌어요', '기타'],
+    HDMI: ['화면이 안 나와요', '케이블이 망가졌어요', '단자가 헐거워요', '기타'],
+    TV: ['전원이 안 켜져요', '화면이 안 나와요', '소리가 안 나요', '리모컨이 없어요', '기타'],
+    노트북: ['전원이 안 켜져요', '화면이 안 나와요', '인터넷이 안 돼요', '부서졌어요', '기타'],
+  };
   const SLOT_OPTS = ['단자망가짐', '충전선망가짐']; // 현황 탭 충전 칸 드롭다운 항목
+  const TEACHERS = ['김지원', '박서연', '이도윤', '최하늘', '정민준']; // 교사 명단 A열 예시
   const STAFF = ['교무실'], STAFF_DEV = ['태블릿', '노트북'];
   const cabItem = s => /도어|문/.test(s) ? '도어' : /램프|살균/.test(s) ? '살균램프' : /타이머/.test(s) ? '타이머' : /전원/.test(s) ? '전원' : '비고';
   function seed() {
@@ -308,12 +305,8 @@ const Mock = (() => {
   function handle(a, p) {
     if (a.startsWith('admin_') && p.admin !== 'demo') return { ok: false, error: 'ADMIN', message: '관리자 비밀번호가 맞지 않습니다. (체험 모드: demo)' };
     switch (a) {
-      case 'init': {
-        const r = { ok: true, school: '영신중학교 (체험)', slotOptions: SLOT_OPTS, equipment: EQUIP, staffDevices: STAFF_DEV,
-          classes: CLASSES.map(c => ({ cls: c })).concat(STAFF.map(c => ({ cls: c, staff: true }))) };
-        if (p.cls) r.data = handle('class', p);
-        return r;
-      }
+      case 'init': return { ok: true, school: '영신중학교 (체험)', symptoms: SYMPTOMS, slotOptions: SLOT_OPTS, equipment: EQUIP, staffDevices: STAFF_DEV, teachers: TEACHERS,
+        classes: CLASSES.map(c => ({ cls: c })).concat(STAFF.map(c => ({ cls: c, staff: true }))) };
       case 'class': {
         const c = p.cls;
         if (STAFF.includes(c)) return { ok: true, cls: c, staff: true, reports: db.reports.filter(r => r.cls === c && isOpen(r.status)).map(({ id, at, target, num, issue, status, reporter }) => ({ id, at, target, num, issue, status, reporter })) }; if (!db.grid[c]) return { ok: false, message: '현황 탭에서 찾을 수 없는 반입니다: ' + c };
@@ -401,6 +394,7 @@ const state = {
   cls: params.get('c') || '',
   grade: '',
   adminKey: store.get('tm-admin', true) || '',
+  teacherName: store.get('tm-tname', true) || '',
   adminTab: 'open',
   adminMode: location.hash === '#admin' || params.has('admin'),
   init: null, data: null,
@@ -413,58 +407,22 @@ function toast(msg) {
   const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
 }
-/* ───────── 뒤로 가기 ─────────
- * 화면을 옮길 때마다 브라우저 기록을 하나씩 쌓아, 휴대폰 뒤로 가기 키가 앞 화면으로 돌아가게 합니다.
- * go(화면) = 새 화면으로 이동(기록 추가), go(화면, true) = 지금 기록을 바꿔치기, back(대신 갈 화면) = 앞 화면으로. */
-const nav = { stack: [], i: -1, seq: 0, sheet: false };
-function go(fn, replace) {
-  nav.seq++;
-  if (nav.sheet) { nav.sheet = false; $layer.innerHTML = ''; history.replaceState({ nav: nav.i }, ''); }
-  if (replace || nav.i < 0) { nav.i = Math.max(nav.i, 0); nav.stack[nav.i] = fn; history.replaceState({ nav: nav.i }, ''); }
-  else { nav.stack.length = nav.i + 1; nav.stack.push(fn); nav.i++; history.pushState({ nav: nav.i }, ''); }
-  return fn();
-}
-/** QR로 바로 반 메뉴에 들어올 때: 첫 기록을 학년·반 고르기 화면으로 깔아 두어, 뒤로 가기가 브라우저를 닫지 않게 함 */
-function seedNav(fn) { nav.stack = [fn]; nav.i = 0; history.replaceState({ nav: 0 }, ''); }
-function back(fallback) { if (nav.i > 0) history.back(); else go(fallback, true); }
-window.addEventListener('popstate', e => {
-  const s = e.state || {};
-  if (nav.sheet || $layer.innerHTML) { nav.sheet = false; $layer.innerHTML = ''; if (s.nav === nav.i) return; }
-  if (typeof s.nav !== 'number' || s.nav === nav.i || !nav.stack[s.nav]) return;
-  nav.i = s.nav; nav.seq++;
-  nav.stack[nav.i]();
-});
-
-/** 열린 창 닫기. 창을 열 때 쌓은 기록도 함께 되돌립니다. */
-function closeSheet() {
-  if (!$layer.innerHTML) return;
-  $layer.innerHTML = '';
-  if (nav.sheet) { nav.sheet = false; history.back(); }
-}
+function closeSheet() { $layer.innerHTML = ''; }
 function sheet(title, bodyHTML, onMount) {
   $layer.innerHTML = `<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <div class="sheet-head"><h2>${esc(title)}</h2><button class="x" type="button" id="sheetX" aria-label="닫기">×</button></div>${bodyHTML}</div></div>`;
-  if (!nav.sheet && nav.i >= 0) { nav.sheet = true; history.pushState({ nav: nav.i, sheet: true }, ''); }
   document.getElementById('sheetX').onclick = closeSheet;
   document.getElementById('scrim').onclick = e => { if (e.target.id === 'scrim') closeSheet(); };
   onMount && onMount($layer.querySelector('.sheet'));
 }
 function setChip(text, fn) { $chip.hidden = !text; $chip.textContent = text || ''; $chip.onclick = fn || null; }
 function show(html) { closeSheet(); $app.innerHTML = html; window.scrollTo(0, 0); }
-const LOADING = '<div class="loading" role="status" aria-label="불러오는 중"><span class="spinner"></span></div>';
-/** 버튼을 '보내는 중' 상태로 바꿈(누르지 못하게 하고 글자를 깜박임). 돌려받은 함수를 부르면 원래대로 */
-function busy(btn, text) {
-  const html = btn.innerHTML;
-  btn.disabled = true; btn.classList.add('busy'); btn.setAttribute('aria-busy', 'true');
-  btn.innerHTML = `<span class="busy-ring" aria-hidden="true"></span><span class="busy-tx">${esc(text)}</span>`;
-  return () => { btn.disabled = false; btn.classList.remove('busy'); btn.removeAttribute('aria-busy'); btn.innerHTML = html; };
-}
 
 /* ───────── 시작 ───────── */
 async function boot() {
   document.getElementById('demoBar').hidden = !DEMO;
-  if (state.adminMode) return go(renderAdmin, true);
-  if (!state.code) return go(renderCodeGate, true);
+  if (state.adminMode) return renderAdmin();
+  if (!state.code) return renderCodeGate();
   // 지난번에 받아 둔 학년·반 목록이 있으면 바로 화면을 띄우고, 새 목록은 뒤에서 받아 옵니다.
   const key = 'tm-init:' + (DEMO ? 'demo' : CONFIG.API_URL);
   let cached = null;
@@ -472,30 +430,22 @@ async function boot() {
   const start = r => {
     state.init = r;
     document.getElementById('schoolName').textContent = r.school;
-    if (state.cls && r.classes.some(c => c.cls === state.cls)) {
-      seedNav(renderHome);
-      return go(() => openMenu(state.cls));
-    }
-    go(renderHome, true);
+    if (state.cls && r.classes.some(c => c.cls === state.cls)) return openMenu(state.cls);
+    renderHome();
   };
   if (cached && cached.ok) start(cached);
-  // 받아 둔 목록이 없을 때 QR로 들어오면, 반 정보도 같은 요청으로 함께 받아 서버에 두 번 묻지 않습니다.
-  const r = await api('init', !cached && state.cls ? { cls: state.cls } : {});
+  const r = await api('init');
   if (!r.ok) {
-    if (r.error === 'CODE') { store.del('tm-code'); store.del(key); state.code = ''; return go(() => renderCodeGate(r.message), true); }
+    if (r.error === 'CODE') { store.del('tm-code'); store.del(key); state.code = ''; return renderCodeGate(r.message); }
     if (!cached) return renderError(r.message);
     return;
   }
-  if (r.data) { if (r.data.ok) { state.cls = r.data.cls; state.data = r.data; } delete r.data; }
   store.set(key, JSON.stringify(r));
   if (!cached) return start(r);
   const changed = JSON.stringify(cached) !== JSON.stringify(r);
   state.init = r;
   document.getElementById('schoolName').textContent = r.school;
-  if (!changed) return;
-  // 받아 둔 목록과 달라졌으면(예: 기자재 탭 추가) 지금 보고 있는 학년·반 고르기나 반 메뉴를 새 목록으로 다시 그림
-  if (!state.data && $app.querySelector('.pick')) renderHome();
-  else if (state.data && state.data.cls === state.cls && $app.querySelector('nav.menu') && !nav.sheet) openMenu(state.cls);
+  if (changed && !state.data && $app.querySelector('.pick')) renderHome();
 }
 function renderError(msg) {
   show(`<div class="panel form"><h3>문제가 생겼어요</h3><p class="muted">${esc(msg)}</p><button class="ghost" type="button" onclick="location.reload()">다시 시도</button></div>`);
@@ -510,7 +460,7 @@ function renderCodeGate(msg) {
     <button class="primary" type="button" id="codeGo">들어가기</button></div>`);
   document.getElementById('codeGo').onclick = () => {
     const v = document.getElementById('codeIn').value.trim(); if (!v) return;
-    state.code = v; store.set('tm-code', v); show(LOADING); boot();
+    state.code = v; store.set('tm-code', v); boot();
   };
 }
 
@@ -538,7 +488,7 @@ function renderHome() {
       }).join('')}</div>` : '<div class="hint">학년을 먼저 골라 주세요</div>'}
     </section>`);
   $app.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { state.grade = b.dataset.g; store.set('tm-grade', state.grade); renderHome(); });
-  $app.querySelectorAll('[data-cls]').forEach(b => b.onclick = () => go(() => openMenu(b.dataset.cls)));
+  $app.querySelectorAll('[data-cls]').forEach(b => b.onclick = () => openMenu(b.dataset.cls));
 }
 
 /* ───────── 화면 2: 메뉴 ───────── */
@@ -551,24 +501,13 @@ async function loadClass(cls) {
 const isStaff = c => ((state.init && state.init.classes) || []).some(x => x.cls === c && x.staff);
 const whereShort = r => isStaff(r.cls || state.cls) ? `${r.reporter || ''} 선생님 ${r.target}` : r.target === '태블릿' ? `${r.num}번 태블릿` : r.target === '충전함 칸' ? `충전 칸 ${r.num}번` : r.target;
 const whereLong = r => `${clsLabel(r.cls)} ${whereShort(r)}`;
-/** 반 화면 안의 메뉴: 뒤로/앞으로 가기로 다시 열 때 그 반 정보가 없으면 먼저 불러옴 */
-const inClass = (cls, fn) => async () => {
-  if (!state.data || state.data.cls !== cls) {
-    show(LOADING);
-    const seq = nav.seq;
-    if (!(await loadClass(cls)) || seq !== nav.seq) return;
-  }
-  fn();
-};
-const openOf = (target) =>state.data.reports.filter(r => Array.isArray(target) ? target.includes(r.target) : r.target === target);
+const openOf = (target) => state.data.reports.filter(r => Array.isArray(target) ? target.includes(r.target) : r.target === target);
 
 async function openMenu(cls) {
-  setChip('반 바꾸기', () => back(renderHome));
+  setChip('반 바꾸기', renderHome);
   if (!state.data || state.data.cls !== cls) {
-    show(LOADING);
-    const seq = nav.seq;
+    show('<div class="loading">불러오는 중…</div>');
     if (!(await loadClass(cls))) return;
-    if (seq !== nav.seq) return;   // 불러오는 동안 다른 화면으로 옮겨 갔으면 그리지 않음
   }
   const d = state.data;
   if (d.staff) return staffMenu(cls);
@@ -594,8 +533,8 @@ async function openMenu(cls) {
     </nav>`);
   $app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
     const g = b.dataset.go;
-    if (g.startsWith('eq:')) return go(inClass(cls, () => openEquip(g.slice(3))));
-    go(inClass(cls, { usage: openUsage, tablet: openTablet, cabinet: openCabinet }[g]));
+    if (g.startsWith('eq:')) return openEquip(g.slice(3));
+    ({ usage: openUsage, tablet: openTablet, cabinet: openCabinet })[g]();
   });
 }
 function staffMenu(cls) {
@@ -606,21 +545,21 @@ function staffMenu(cls) {
       <section class="report-box" aria-labelledby="secRep">
       <h3 class="menu-sec" id="secRep">고장 신고</h3>
       <div class="tiles">${devs.map(dv => { const n = openOf(dv).length;
-        return `<button type="button" class="tile${n ? ' has' : ''}" data-dev="${esc(dv)}"><span class="ic">${iconFor(dv)}</span><span class="tx"><b>${esc(dv)}</b>${n ? `<small class="bad">지금 ${n}건 접수됨</small>` : ''}</span></button>`; }).join('')}</div>
+        return `<button type="button" class="tile${n ? ' has' : ''}" data-dev="${esc(dv)}"><span class="ic">${iconFor(dv)}</span><span class="tx"><b>${esc(dv)}</b><small class="${n ? 'bad' : ''}">${n ? `지금 ${n}건 접수됨` : '이름을 골라 신고해요'}</small></span></button>`; }).join('')}</div>
       </section>
     </nav>`);
-  $app.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => go(inClass(cls, () => openStaff(b.dataset.dev))));
+  $app.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => openStaff(b.dataset.dev));
 }
 /** 선생님 이름: 직접 입력 (지난번에 쓴 이름이 미리 채워짐) */
-function teacherInput(id, selected) {
+function teacherSelect(id, selected) {
   return `<input type="text" id="${id}" value="${esc(selected || '')}" placeholder="선생님 이름을 적어 주세요" maxlength="30" autocomplete="name">`;
 }
 function openStaff(device) {
-  const me = store.get('tm-staff-name') || '';
+  const me = store.get('tm-staff-name') || state.teacherName || '';
   show(`${backBtn()}
     <section class="panel form">
       <h2>${esc(state.cls)} · 선생님 ${esc(device)}</h2>
-      <div class="field"><label for="who">선생님</label>${teacherInput('who', me)}</div>
+      <div class="field"><label for="who">선생님</label>${teacherSelect('who', me)}</div>
       ${problemField('예: 충전기를 꽂아도 화면이 안 켜져요')}
       <button type="button" class="primary" id="send" disabled>신고하기</button>
     </section>
@@ -631,13 +570,12 @@ function openStaff(device) {
   bindIssue(panel, null, issue => ({ item: device, issue }), () => openStaff(device), true);
 }
 /** 기자재 이름으로 아이콘 고르기 */
-const iconFor = n => /와이파이|wi-?fi|무선/i.test(n) ? ICON.wifi
-  : /랜|LAN|lan|인터넷|네트워크|공유기/i.test(n) ? ICON.lan
+const iconFor = n => /랜|LAN|lan|인터넷|네트워크|공유기|와이파이|wifi/i.test(n) ? ICON.lan
   : /HDMI|케이블|선|젠더|충전기/i.test(n) ? ICON.plug
   : /노트북/.test(n) ? ICON.laptop
   : /태블릿|패드/.test(n) ? ICON.tablet : ICON.tool;
-const backBtn = () => `<button type="button" class="back" id="back"><span class="back-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></span>${esc(clsLabel(state.cls))} 메뉴</button>`;
-function bindBack() { const cls = state.cls; document.getElementById('back').onclick = () => back(() => openMenu(cls)); }
+const backBtn = () => `<button type="button" class="back" id="back">‹ ${esc(clsLabel(state.cls))} 메뉴</button>`;
+function bindBack() { document.getElementById('back').onclick = () => openMenu(state.cls); }
 const openList = list => `<section class="form"><h3>처리 중인 신고</h3>
   <div class="list">${list.length ? list.map(reportItem).join('') : '<div class="empty">처리 중인 신고가 없어요.</div>'}</div></section>`;
 
@@ -669,21 +607,29 @@ function openCabinet() {
   show(`${backBtn()}
     <section class="board" aria-label="충전함 상태">
       <div class="board-head"><h2>${esc(clsLabel(state.cls))} 충전함</h2></div>
+      <p class="muted" style="margin:0 0 8px;font-size:13px">도어·살균램프·타이머·전원이 고장 났으면 그 칸을 눌러요</p>
       <div class="parts">${PARTS.map(k => { const v = d.cabinet[k] || OK; const bad = v !== OK;
-        return `<div class="part${bad ? ' bad' : ''}"><small>${k}</small><b>${bad ? esc(v) : '정상'}</b></div>`; }).join('')}</div>
+        return `<button type="button" class="part${bad ? ' bad' : ''}" data-part="${k}" aria-label="${k} 고장 신고"><small>${k}</small><b>${bad ? esc(v) : '정상'}</b><span class="go">신고하기 ›</span></button>`; }).join('')}</div>
       <h3>충전 칸 <span class="muted" style="font-weight:400;font-size:13px">단자·충전선이 고장 난 칸 번호를 눌러요</span></h3>
       <div class="nums">${d.chargeSlots.map(s => { const bad = s.status !== OK; const c = bad ? (fixing[s.n] ? ' fix' : ' bad') : '';
         return `<button type="button" class="num${c}" data-slot="${s.n}" aria-label="충전 칸 ${s.n}번 ${bad ? esc(s.status) : '정상'}"><span class="n">${s.n}</span>${bad ? `<span class="s">${fixing[s.n] ? '수리 중' : esc(s.status)}</span>` : ''}</button>`; }).join('')}</div>
       <div class="legend"><span><i></i>정상</span><span><i class="b"></i>고장</span><span><i class="f"></i>수리 중</span></div>
     </section>
     <section class="panel form">
-      <h3>충전함 자체에 문제가 있나요?</h3>
-      ${problemField('예: 문이 안 잠겨요 / 살균램프가 안 켜져요')}
+      <h3>그 밖의 충전함 문제</h3>
+      ${problemField('예: 충전함이 흔들려요 / 바퀴가 빠졌어요')}
       <button type="button" class="primary" id="send" disabled>신고하기</button>
     </section>
     ${openList(openOf(['충전함', '충전함 칸']))}`);
   bindBack();
   bindIssue($app.querySelector('.panel'), null, issue => ({ target: 'cabinet', issue }), openCabinet);
+  const PART_PH = { 도어: '예: 문이 안 잠겨요', 살균램프: '예: 살균램프가 안 켜져요', 타이머: '예: 타이머가 작동하지 않아요', 전원: '예: 충전함 전원이 안 들어와요' };
+  $app.querySelectorAll('[data-part]').forEach(b => b.onclick = () => {
+    const k = b.dataset.part, v = d.cabinet[k] || OK;
+    const note = v !== OK ? `<p class="muted">지금 <b style="color:var(--bad)">${esc(v)}</b>(으)로 표시되어 있어요.</p>` : '';
+    sheet(`충전함 ${k}`, `${note}<div class="form">${problemField(PART_PH[k])}<button type="button" class="primary" id="send" disabled>신고하기</button></div>`,
+      el => bindIssue(el, null, issue => ({ target: 'cabinet', issue: `${k}: ${issue}` }), openCabinet));
+  });
   $app.querySelectorAll('[data-slot]').forEach(b => b.onclick = () => {
     const n = Number(b.dataset.slot);
     const cur = d.chargeSlots[n - 1];
@@ -698,7 +644,6 @@ function openEquip(name) {
     <section class="panel form">
       <h2>${esc(clsLabel(state.cls))} ${esc(name)}</h2>
       ${problemField('어떤 문제가 있는지 적어 주세요. 예: 연결해도 화면이 안 나와요')}
-      ${whoField('예: 김지원 선생님 / 12번 학생')}
       <button type="button" class="primary" id="send" disabled>신고하기</button>
     </section>
     ${openList(openOf(name))}`);
@@ -714,8 +659,8 @@ function reportItem(r) {
 function problemField(ph) {
   return `<div class="field"><label for="memo">문제점</label><textarea id="memo" maxlength="300" rows="3" placeholder="${esc(ph || '어떤 문제가 있는지 적어 주세요')}"></textarea></div>`;
 }
-function whoField(ph) {
-  return `<div class="field"><label for="who">신고자 (선택)</label><input type="text" id="who" maxlength="30" placeholder="${esc(ph || '예: 12번 학생')}"></div>`;
+function whoField() {
+  return `<div class="field"><label for="who">신고한 사람 (선택)</label><input type="text" id="who" maxlength="30" placeholder="예: 12번 학생"></div>`;
 }
 function extraFields() {
   return `<div class="field"><label for="memo">문제점 (선택)</label><textarea id="memo" maxlength="300" placeholder="예: 꽂으면 충전 표시가 깜빡이다 꺼져요"></textarea></div>`;
@@ -746,9 +691,9 @@ function bindIssue(el, list, build, after, needName) {
     const issue = chips ? sel : memo.value.trim();
     if (!issue) return toast('문제점을 적어 주세요.');
     if (needName && !el.querySelector('#who').value.trim()) return toast('선생님 이름을 적어 주세요.');
-    const done = busy(send, '보내는 중…');
+    send.disabled = true; send.textContent = '보내는 중…';
     const r = await api('report', { cls: state.cls, memo: chips ? memo.value.trim() : '', reporter: (el.querySelector('#who') || { value: '' }).value.trim(), ...build(issue) });
-    if (!r.ok) { done(); return toast(r.message); }
+    if (!r.ok) { send.disabled = false; send.textContent = '신고하기'; return toast(r.message); }
     toast(r.duplicate ? r.message : `${r.message}${r.mailed ? ' 담당 선생님께 메일로 알렸어요.' : ''}`);
     if (r.data && r.data.ok) { state.data = r.data; after(); }      // 신고 응답에 새 반 정보가 함께 옴 (한 번 더 묻지 않음)
     else if (await loadClass(state.cls)) after();
@@ -757,26 +702,24 @@ function bindIssue(el, list, build, after, needName) {
 
 /* ───────── 태블릿 사용대장 ───────── */
 async function openUsage() {
-  show(`${backBtn()}${LOADING}`); bindBack();
-  const seq = nav.seq;
+  show(`${backBtn()}<div class="loading">불러오는 중…</div>`); bindBack();
   const r = await api('usage_list', { cls: state.cls });
-  if (seq !== nav.seq) return;
   if (!r.ok) return renderError(r.error === 'UPW'
     ? '서버(Apps Script)가 아직 예전 버전입니다. 관리 담당 선생님께 Code.gs를 새 버전으로 다시 배포해 달라고 알려 주세요.'
     : r.message);
   renderUsage(r.usage);
 }
 function renderUsage(usage) {
-  const teacher = store.get('tm-teacher') || '';
+  const teacher = state.teacherName || store.get('tm-teacher') || '';
   const subject = store.get('tm-subject') || '';
   show(`${backBtn()}
     <section class="panel form" aria-label="사용 기록 입력">
-      <h2>${esc(clsLabel(state.cls))} 태블릿 사용대장</h2>
+      <h2>${esc(clsLabel(state.cls))} 사용대장</h2>
       <div class="field"><label for="uDate">사용한 날</label><input type="date" id="uDate" value="${today()}"></div>
       <div class="field"><span class="lab" id="pLab">교시 (여러 개 선택 가능)</span>
         <div class="chips" role="group" aria-labelledby="pLab">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button type="button" class="chip" aria-pressed="false" data-p="${n}">${n}교시</button>`).join('')}</div></div>
       <div class="row2">
-        <div class="field"><label for="uTeacher">선생님</label>${teacherInput('uTeacher', teacher)}</div>
+        <div class="field"><label for="uTeacher">선생님</label>${teacherSelect('uTeacher', teacher)}</div>
         <div class="field"><label for="uSubject">교과</label><input type="text" id="uSubject" value="${esc(subject)}" placeholder="예: 과학" maxlength="30"></div>
       </div>
       <div class="field"><span class="lab" id="cLab2">반납할 때 상태</span>
@@ -804,12 +747,12 @@ function renderUsage(usage) {
     const s = document.getElementById('uSubject').value.trim();
     if (!periods.size) return toast('교시를 하나 이상 골라 주세요.');
     if (!t) return toast('선생님 이름을 적어 주세요.');
-    const done = busy(save, '저장하는 중…');
+    save.disabled = true; save.textContent = '저장 중…';
     const r = await api('usage', { cls: state.cls, date: document.getElementById('uDate').value, periods: [...periods].sort((a, b) => a - b),
       teacher: t, subject: s, condition, memo: document.getElementById('uMemo').value.trim() });
-    if (!r.ok) { done(); return toast(r.message); }
+    if (!r.ok) { save.disabled = false; save.textContent = '기록 저장'; return toast(r.message); }
     store.set('tm-teacher', t); store.set('tm-subject', s);
-    if (condition === '이상 있음') { toast('저장했어요. 고장 난 번호를 눌러 신고해 주세요.'); if (await loadClass(state.cls)) go(openTablet, true); }
+    if (condition === '이상 있음') { toast('저장했어요. 고장 난 번호를 눌러 신고해 주세요.'); if (await loadClass(state.cls)) openTablet(); }
     else { toast(r.message); openUsage(); }
   };
 }
@@ -817,7 +760,7 @@ function renderUsage(usage) {
 /* ───────── 관리자 ───────── */
 async function renderAdmin() {
   state.adminMode = true;
-  setChip('사용 화면으로', () => { state.adminMode = false; if (nav.i > 0) history.back(); else boot(); });
+  setChip('사용 화면으로', () => { state.adminMode = false; boot(); });
   if (!state.adminKey) return renderAdminLogin();
   const chk = await api('admin_check');
   if (!chk.ok) { state.adminKey = ''; store.del('tm-admin', true); return renderAdminLogin(chk.message); }
@@ -825,7 +768,7 @@ async function renderAdmin() {
   show(`<div class="form no-print" style="gap:10px"><h2>관리자</h2>
     <div class="subtabs" role="tablist">${[['open', '처리할 신고'], ['done', '처리 완료'], ['qr', 'QR 코드']].map(([k, l]) =>
       `<button type="button" role="tab" aria-selected="${state.adminTab === k}" data-at="${k}">${l}</button>`).join('')}</div></div>
-    <div id="adminBody">${LOADING}</div>`);
+    <div id="adminBody"><div class="loading">불러오는 중…</div></div>`);
   $app.querySelectorAll('[data-at]').forEach(b => b.onclick = () => { state.adminTab = b.dataset.at; renderAdmin(); });
   if (state.adminTab === 'qr') return renderQR();
   const r = await api('admin_data');
@@ -843,9 +786,9 @@ async function renderAdmin() {
         <button type="button" class="ghost sm" data-st="반려" data-id="${esc(x.id)}">잘못된 신고</button></div></div>`).join('') : '<div class="empty">처리할 신고가 없어요.</div>'}</div>`;
     body.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
       const id = b.dataset.id; const note = (body.querySelector(`[data-note="${CSS.escape(id)}"]`) || {}).value;
-      const done = busy(b, '바꾸는 중…');
+      b.disabled = true;
       const u = await api('admin_update', { id, status: b.dataset.st, note });
-      if (!u.ok) { done(); return toast(u.message); }
+      if (!u.ok) { b.disabled = false; return toast(u.message); }
       toast(`${b.dataset.st}(으)로 바꿨어요.`); renderAdmin();
     });
   } else {
@@ -879,7 +822,7 @@ async function renderQR() {
     (state.init ? state.init.classes : []).forEach(c => {
       const url = `${b}?c=${encodeURIComponent(c.cls)}&k=${encodeURIComponent(state.adminCode || state.code)}`;
       const card = document.createElement('div'); card.className = 'qr-card';
-      card.innerHTML = `<div class="qr-box"></div><b>${esc(clsLabel(c.cls))}</b><small><strong>태블릿 사용대장 및 고장 신고</strong>휴대폰 카메라로 찍어 주세요</small>`;
+      card.innerHTML = `<div class="qr-box"></div><b>${esc(clsLabel(c.cls))}</b><small>고장 신고 · 사용대장<br>휴대폰 카메라로 찍어 주세요</small>`;
       grid.appendChild(card);
       if (window.QRCode) new QRCode(card.querySelector('.qr-box'), { text: url, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M });
       else card.querySelector('.qr-box').textContent = 'QR 라이브러리를 불러오지 못했어요';
@@ -890,8 +833,8 @@ async function renderQR() {
   draw();
 }
 
-document.getElementById('brand').onclick = () => { if (state.init) go(renderHome); else boot(); };
-document.getElementById('adminLink').onclick = () => go(renderAdmin);
+document.getElementById('brand').onclick = () => { if (state.init) renderHome(); else boot(); };
+document.getElementById('adminLink').onclick = () => renderAdmin();
 document.getElementById('demoReset').onclick = () => { Mock.reset(); state.data = null; toast('예시 데이터를 처음 상태로 돌렸어요.'); boot(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 boot();
