@@ -141,6 +141,7 @@ select { width: 100%; border: 1px solid var(--line); background: var(--surface-2
 .pill.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
 .pill.fix { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .pill.ok { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.pill.hold { background: transparent; color: var(--warn); border: 1px dashed var(--warn); }
 .empty { text-align: center; color: var(--muted); padding: 18px; font-size: 14px; }
 .form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -164,6 +165,9 @@ button.busy .busy-ring { width: 1em; height: 1em; border-radius: 50%; border: 2p
 @media (prefers-reduced-motion: reduce) { button.busy .busy-tx { animation-duration: 2s; } }
 .ghost { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 12px; font-weight: 600; }
 .ghost.sm { padding: 6px 10px; font-size: 13px; }
+.actions.even { display: grid; grid-template-columns: repeat(3, 1fr); }
+.ghost.on { background: var(--warn-soft); color: var(--warn); border-color: transparent; cursor: default; }
+.choose-tip { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
 .lock { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); }
 .lock svg { width: 28px; height: 28px; }
 .err { color: var(--bad); font-size: 14px; }
@@ -225,7 +229,7 @@ footer.wrap { padding-block: 0 32px; font-size: 13px; color: var(--muted); displ
 <main class="wrap" id="app"><div class="loading" role="status" aria-label="불러오는 중"><span class="spinner"></span></div></main>
 <footer class="wrap">
   <span>고장은 발견한 즉시 신고해 주세요.</span>
-  <span>화면 버전 11-03b</span>
+  <span>화면 버전 11-05a</span>
   <button type="button" class="link-btn" id="adminLink">관리자</button>
 </footer>
 <div id="layer"></div>
@@ -264,7 +268,13 @@ const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const today = () => fmt(new Date()).slice(0, 10);
 const clsLabel = c => { const m = String(c).match(/^(\d)-(\d+)$/); return m ? `${m[1]}학년 ${m[2]}반` : c; };
 const gradeOf = c => { const m = String(c).match(/^(\d)-/); return m ? m[1] + '학년' : '특별실'; };
-const isOpen = s => s === '접수' || s === '수리중' || s === '';
+// 처리 상태: 접수 → 확인중(관리자 확인 중) → 완료(수리 완료) / 보류(수리 보류) / 반려(잘못된 신고)
+// '수리중'은 예전에 쓰던 이름이라 '확인중'과 똑같이 다룹니다.
+const isOpen = s => s === '접수' || s === '확인중' || s === '수리중' || s === '';
+const isChecking = s => s === '확인중' || s === '수리중';
+const STATUS_LABEL = { '': '접수', 접수: '접수', 확인중: '관리자 확인 중', 수리중: '관리자 확인 중', 완료: '수리 완료', 보류: '수리 보류', 반려: '잘못된 신고' };
+const statusLabel = s => STATUS_LABEL[s || ''] || s;
+const pillOf = s => isChecking(s) ? 'fix' : isOpen(s) ? 'bad' : s === '보류' ? 'hold' : s === '완료' ? 'ok' : '';
 
 /* ───────── 체험 모드용 가짜 서버 (실제 Apps Script와 같은 응답) ───────── */
 const Mock = (() => {
@@ -283,7 +293,7 @@ const Mock = (() => {
      ['명지정', 9, '단자망가짐']].forEach(([c, n, s]) => db.grid[c][n - 1] = s);
     db.door['2-3'] = '고장'; db.lamp['2-1'] = '살균램프 나감'; db.lamp['3-1'] = '살균램프 나감'; db.lamp['1-5'] = '타이머 없음';
     const add = (id, at, cls, target, num, issue, memo, status) => db.reports.push({ id, at, cls, target, num, issue, memo, reporter: '', status, doneAt: '', note: '' });
-    add('R1', '2026-10-21 09:12', '2-3', '태블릿', 6, '충전이 안 돼요', '꽂아도 반응 없음', '수리중');
+    add('R1', '2026-10-21 09:12', '2-3', '태블릿', 6, '충전이 안 돼요', '꽂아도 반응 없음', '확인중');
     add('R2', '2026-10-22 14:05', '2-3', '태블릿', 14, '화면이 깨졌어요', '', '접수');
     add('R3', '2026-10-22 14:06', '2-3', '충전함 칸', 7, '단자망가짐', '', '접수');
     add('R4', '2026-10-22 11:40', '2-3', '충전함', '', '문이 안 닫히거나 안 잠겨요', '잠금 걸쇠가 헐거움', '접수');
@@ -320,7 +330,7 @@ const Mock = (() => {
         const c = p.cls;
         if (STAFF.includes(c)) return { ok: true, cls: c, staff: true, reports: db.reports.filter(r => r.cls === c && isOpen(r.status)).map(({ id, at, target, num, issue, status, reporter }) => ({ id, at, target, num, issue, status, reporter })) }; if (!db.grid[c]) return { ok: false, message: '현황 탭에서 찾을 수 없는 반입니다: ' + c };
         const open = db.reports.filter(r => r.cls === c && isOpen(r.status));
-        const tab = {}; open.filter(r => r.target === '태블릿').forEach(r => { tab[r.num] = r.status === '수리중' ? '수리중' : (tab[r.num] || '접수'); });
+        const tab = {}; open.filter(r => r.target === '태블릿').forEach(r => { tab[r.num] = isChecking(r.status) ? '확인중' : (tab[r.num] || '접수'); });
         const cabinet = { 도어: db.door[c], 살균램프: OK, 타이머: OK, 전원: OK, 비고: '' };
         if (db.lamp[c] !== OK) { if (/타이머/.test(db.lamp[c])) cabinet.타이머 = db.lamp[c]; else cabinet.살균램프 = db.lamp[c]; }
         open.filter(r => r.target === '충전함').forEach(r => { const it = cabItem(r.issue); if (it === '전원') cabinet.전원 = r.issue; if (it === '비고') cabinet.비고 = r.issue; });
@@ -358,7 +368,7 @@ const Mock = (() => {
       case 'admin_update': {
         const r = db.reports.find(x => x.id === p.id); if (!r) return { ok: false, message: '신고를 찾을 수 없습니다.' };
         r.status = p.status; r.doneAt = fmt(new Date()); if (p.note) r.note = p.note;
-        if (!isOpen(r.status)) {
+        if (!isOpen(r.status) && r.status !== '보류') {   // 보류는 아직 고장이므로 현황 탭을 그대로 둠
           const same = x => x !== r && x.cls === r.cls && x.target === r.target && isOpen(x.status) &&
             (r.target === '충전함 칸' ? String(x.num) === String(r.num) : cabItem(x.issue) === cabItem(r.issue));
           const other = db.reports.find(same);
@@ -650,9 +660,9 @@ function openTablet() {
     <section class="board" aria-label="번호 고르기">
       <div class="board-head"><h2>내 번호를 눌러 주세요</h2></div>
       <div class="steps"><span>1 내 번호</span><span>2 문제점 적기</span><span>3 신고하기</span></div>
-      <div class="nums">${d.tablets.map(t => { const c = t.status === '수리중' ? ' fix' : t.status ? ' bad' : '';
-        return `<button type="button" class="num${c}" data-n="${t.n}" aria-label="${t.n}번${t.status ? ' ' + t.status : ''}"><span class="n">${t.n}</span>${t.status ? `<span class="s">${t.status === '수리중' ? '수리 중' : '접수됨'}</span>` : ''}</button>`; }).join('')}</div>
-      <div class="legend"><span><i></i>정상</span><span><i class="b"></i>고장 접수됨</span><span><i class="f"></i>수리 중</span></div>
+      <div class="nums">${d.tablets.map(t => { const c = isChecking(t.status) ? ' fix' : t.status ? ' bad' : '';
+        return `<button type="button" class="num${c}" data-n="${t.n}" aria-label="${t.n}번${t.status ? ' ' + statusLabel(t.status) : ''}"><span class="n">${t.n}</span>${t.status ? `<span class="s">${isChecking(t.status) ? '확인 중' : '접수됨'}</span>` : ''}</button>`; }).join('')}</div>
+      <div class="legend"><span><i></i>정상</span><span><i class="b"></i>고장 접수됨</span><span><i class="f"></i>관리자 확인 중</span></div>
     </section>
     ${openList(openOf('태블릿'))}`);
   bindBack();
@@ -667,7 +677,7 @@ function openTablet() {
 /* ───────── 충전함 고장 신고 (현황 탭) ───────── */
 function openCabinet() {
   const d = state.data;
-  const fixing = {}; openOf('충전함 칸').forEach(r => { if (r.status === '수리중') fixing[Number(r.num)] = true; });
+  const fixing = {}; openOf('충전함 칸').forEach(r => { if (isChecking(r.status)) fixing[Number(r.num)] = true; });
   show(`${backBtn()}
     <section class="board" aria-label="충전함 상태">
       <div class="board-head"><h2>${esc(clsLabel(state.cls))} 충전함</h2></div>
@@ -676,8 +686,8 @@ function openCabinet() {
         return `<button type="button" class="part${bad ? ' bad' : ''}" data-part="${k}" aria-label="${k} 고장 신고"><small>${k}</small><b>${bad ? esc(v) : '정상'}</b><span class="go">신고하기 ›</span></button>`; }).join('')}</div>
       <h3>충전 칸 <span class="muted" style="font-weight:400;font-size:13px">단자·충전선이 고장 난 칸 번호를 눌러요</span></h3>
       <div class="nums">${d.chargeSlots.map(s => { const bad = s.status !== OK; const c = bad ? (fixing[s.n] ? ' fix' : ' bad') : '';
-        return `<button type="button" class="num${c}" data-slot="${s.n}" aria-label="충전 칸 ${s.n}번 ${bad ? esc(s.status) : '정상'}"><span class="n">${s.n}</span>${bad ? `<span class="s">${fixing[s.n] ? '수리 중' : esc(s.status)}</span>` : ''}</button>`; }).join('')}</div>
-      <div class="legend"><span><i></i>정상</span><span><i class="b"></i>고장</span><span><i class="f"></i>수리 중</span></div>
+        return `<button type="button" class="num${c}" data-slot="${s.n}" aria-label="충전 칸 ${s.n}번 ${bad ? esc(s.status) : '정상'}"><span class="n">${s.n}</span>${bad ? `<span class="s">${fixing[s.n] ? '확인 중' : esc(s.status)}</span>` : ''}</button>`; }).join('')}</div>
+      <div class="legend"><span><i></i>정상</span><span><i class="b"></i>고장</span><span><i class="f"></i>관리자 확인 중</span></div>
     </section>
     <section class="panel form">
       <h3>그 밖의 충전함 문제</h3>
@@ -723,8 +733,7 @@ function openEquip(name) {
 }
 
 function reportItem(r) {
-  const pill = r.status === '수리중' ? 'fix' : 'bad';
-  return `<div class="item"><div class="item-top"><span class="pill ${pill}">${esc(r.status || '접수')}</span><b>${esc(whereShort(r))}</b><span>${esc(r.issue)}</span></div>
+  return `<div class="item"><div class="item-top"><span class="pill ${pillOf(r.status)}">${esc(statusLabel(r.status))}</span><b>${esc(whereShort(r))}</b><span>${esc(r.issue)}</span></div>
     <div class="item-meta">${esc(r.at)} 접수</div></div>`;
 }
 function problemField(ph) {
@@ -848,24 +857,37 @@ async function renderAdmin() {
   if (!r.ok) return renderError(r.message);
   const body = document.getElementById('adminBody');
   const whereOf = whereLong;
-  const pillOf = s => s === '수리중' ? 'fix' : isOpen(s) ? 'bad' : 'ok';
   if (state.adminTab === 'open') {
     body.innerHTML = `<div class="list">${r.open.length ? r.open.map(x => `<div class="item">
-      <div class="item-top"><span class="pill ${pillOf(x.status)}">${esc(x.status || '접수')}</span><b>${esc(whereOf(x))}</b><span>${esc(x.issue)}</span></div>
+      <div class="item-top"><span class="pill ${pillOf(x.status)}">${esc(statusLabel(x.status))}</span><b>${esc(whereOf(x))}</b><span>${esc(x.issue)}</span></div>
       <div class="item-meta">${esc(x.at)} 접수${x.reporter ? ' · ' + esc(x.reporter) : ''}${x.memo ? ' · ' + esc(x.memo) : ''}${x.note ? ' · 처리메모: ' + esc(x.note) : ''}</div>
       <input type="text" data-note="${esc(x.id)}" placeholder="처리 메모 (선택) 예: 단자 교체 요청" maxlength="300">
-      <div class="actions">${x.status !== '수리중' ? `<button type="button" class="ghost sm" data-st="수리중" data-id="${esc(x.id)}">수리 중으로</button>` : ''}
-        <button type="button" class="ghost sm" data-st="완료" data-id="${esc(x.id)}" style="color:var(--accent)">수리 완료</button>
-        <button type="button" class="ghost sm" data-st="반려" data-id="${esc(x.id)}">잘못된 신고</button></div></div>`).join('') : '<div class="empty">처리할 신고가 없어요.</div>'}</div>`;
+      <div class="actions even" data-main="${esc(x.id)}">${isChecking(x.status)
+          ? '<button type="button" class="ghost sm on" disabled aria-pressed="true">관리자 확인 중</button>'
+          : `<button type="button" class="ghost sm" data-st="확인중" data-id="${esc(x.id)}">관리자 확인 중</button>`}
+        <button type="button" class="ghost sm" data-finish="${esc(x.id)}">수리 완료</button>
+        <button type="button" class="ghost sm" data-st="반려" data-id="${esc(x.id)}">잘못된 신고</button></div>
+      <div data-choose="${esc(x.id)}" hidden><p class="choose-tip">수리 결과를 골라 주세요</p>
+        <div class="actions even">
+          <button type="button" class="ghost sm" data-st="완료" data-id="${esc(x.id)}">수리 완료</button>
+          <button type="button" class="ghost sm" data-st="보류" data-id="${esc(x.id)}">수리 보류</button>
+          <button type="button" class="ghost sm" data-cancel="${esc(x.id)}">취소</button></div></div></div>`).join('') : '<div class="empty">처리할 신고가 없어요.</div>'}</div>`;
+    // '수리 완료'를 누르면 완료 / 보류를 고르는 줄로 바뀜
+    const toggle = (id, choose) => {
+      body.querySelector(`[data-main="${CSS.escape(id)}"]`).hidden = choose;
+      body.querySelector(`[data-choose="${CSS.escape(id)}"]`).hidden = !choose;
+    };
+    body.querySelectorAll('[data-finish]').forEach(b => b.onclick = () => toggle(b.dataset.finish, true));
+    body.querySelectorAll('[data-cancel]').forEach(b => b.onclick = () => toggle(b.dataset.cancel, false));
     body.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
       const id = b.dataset.id; const note = (body.querySelector(`[data-note="${CSS.escape(id)}"]`) || {}).value;
       const done = busy(b, '바꾸는 중…');
       const u = await api('admin_update', { id, status: b.dataset.st, note });
       if (!u.ok) { done(); return toast(u.message); }
-      toast(`${b.dataset.st}(으)로 바꿨어요.`); renderAdmin();
+      toast(`'${statusLabel(b.dataset.st)}'(으)로 바꿨어요.`); renderAdmin();
     });
   } else {
-    body.innerHTML = `<div class="list">${r.recentDone.length ? r.recentDone.map(x => `<div class="item"><div class="item-top"><span class="pill ok">${esc(x.status)}</span><b>${esc(whereOf(x))}</b><span>${esc(x.issue)}</span></div>
+    body.innerHTML = `<div class="list">${r.recentDone.length ? r.recentDone.map(x => `<div class="item"><div class="item-top"><span class="pill ${pillOf(x.status)}">${esc(statusLabel(x.status))}</span><b>${esc(whereOf(x))}</b><span>${esc(x.issue)}</span></div>
       <div class="item-meta">${esc(x.at)} 접수 · ${esc(x.doneAt)} 처리${x.note ? ' · ' + esc(x.note) : ''}</div></div>`).join('') : '<div class="empty">아직 처리한 신고가 없어요.</div>'}</div>`;
   }
 }
